@@ -1,0 +1,44 @@
+{
+  "name": "worksheetgenius-id",
+  "version": "1.0.0",
+  "description": "Generator Lembar Kerja Peserta Didik (LKPD) A4 Kurikulum Merdeka",
+  "main": "main.js",
+  "author": "ibupunya.karya",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "build:exe": "electron-builder --win portable",
+    "build:mac": "electron-builder --mac",
+    "build:all": "electron-builder -mw"
+  },
+  "build": {
+    "appId": "id.worksheetgenius.app",
+    "productName": "WorksheetGenius ID",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "portable",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "mac": {
+      "category": "public.app-category.education",
+      "target": [
+        "dmg",
+        "zip",
+        "dir"
+      ],
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
+    },
+    "files": [
+      "main.js",
+      "index.html",
+      "package.json"
+    ]
+  },
+  "devDependencies": {
+    "electron": "^29.1.5",
+    "electron-builder": "^24.13.3"
+  }
+}
