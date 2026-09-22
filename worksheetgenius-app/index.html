@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WorksheetGenius ID - Generator Lembar Kerja Siswa A4</title>
   
-  <!-- App Favicon with primary Logo.png source -->
+  <!-- App Favicon with multi-source fallback -->
   <link rel="icon" type="image/png" href="Logo.png" id="favIcon">
-  <link rel="apple-touch-icon" href="Logo.png">
+  <link rel="shortcut icon" type="image/png" href="Logo.png" id="favShortcut">
+  <link rel="apple-touch-icon" href="Logo.png" id="favApple">
 
   <!-- Modern Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -46,28 +47,34 @@
     .brand-logo-card {
       display: inline-flex;
       align-items: center;
-      gap: 12px;
-      background: rgba(255, 255, 255, 0.14);
-      border: 1px solid rgba(255, 255, 255, 0.28);
+      gap: 14px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.25);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      padding: 8px 18px 8px 12px;
+      padding: 8px 20px 8px 12px;
       border-radius: 20px;
       box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
     }
 
+    /* Seamless transparent logo wrapper with no white background */
     .brand-logo-wrapper {
-      width: 46px;
-      height: 46px;
-      border-radius: 14px;
-      background: #ffffff;
+      width: 50px;
+      height: 50px;
+      background: transparent;
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      overflow: visible;
       flex-shrink: 0;
-      padding: 2px;
+      padding: 0;
+      filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.2));
+    }
+
+    .brand-logo-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
 
     /* Worksheet A4 Standard Canvas */
@@ -531,7 +538,7 @@
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
         <div class="flex flex-col items-start text-left">
           
-          <!-- Embedded Brand Logo Card using Logo.png -->
+          <!-- Embedded Brand Logo Card with Seamless Transparent Logo -->
           <div class="brand-logo-card mb-3">
             <div class="brand-logo-wrapper">
               <img 
@@ -662,7 +669,7 @@
           </div>
         </div>
 
-        <!-- 4. Tingkat Kesulitan -->
+        <!-- 4. Tingkat Kesulitan (Default: Acak) -->
         <div class="flex flex-col gap-1.5">
           <label for="difficulty" class="text-xs font-bold text-slate-700 flex items-center justify-between">
             <span>4. Tingkat Kesulitan</span>
@@ -714,20 +721,30 @@
   </div>
 
   <script>
-    // Robust Logo Loader: Prioritizing Logo.png with intelligent fallbacks
+    // Bulletproof Logo & Favicon Loader with Cascading Sources
+    function updateFaviconLinks(url) {
+      const targets = ['favIcon', 'favShortcut', 'favApple'];
+      targets.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.href = url;
+      });
+    }
+
     function setupRobustLogo() {
       const img = document.getElementById("mainBrandLogo");
-      const fav = document.getElementById("favIcon");
       if (!img) return;
 
       const candidates = [
         "Logo.png",
-        "./Logo.png",
-        "worksheetgenius-app/Logo.png",
-        "https://raw.githubusercontent.com/abulkhaera/worksheetgenius-app/main/worksheetgenius-app/Logo.png",
-        "https://raw.githubusercontent.com/abulkhaera/worksheetgenius-app/main/Logo.png",
         "Logo_2.png",
-        "./Logo_2.png"
+        "./Logo.png",
+        "./Logo_2.png",
+        "worksheetgenius-app/Logo.png",
+        "worksheetgenius-app/Logo_2.png",
+        "https://raw.githubusercontent.com/abulkhaera/worksheetgenius-app/main/worksheetgenius-app/Logo.png",
+        "https://raw.githubusercontent.com/abulkhaera/worksheetgenius-app/main/worksheetgenius-app/Logo_2.png",
+        "https://raw.githubusercontent.com/abulkhaera/worksheetgenius-app/main/Logo.png",
+        "https://raw.githubusercontent.com/abulkhaera/worksheetgenius-app/main/Logo_2.png"
       ];
 
       let candidateIndex = 0;
@@ -735,10 +752,11 @@
       function tryNextSource() {
         candidateIndex++;
         if (candidateIndex < candidates.length) {
-          img.src = candidates[candidateIndex];
-          if (fav) fav.href = candidates[candidateIndex];
+          const nextSrc = candidates[candidateIndex];
+          img.src = nextSrc;
+          updateFaviconLinks(nextSrc);
         } else {
-          // If all file paths fail, inject clean vector SVG inline
+          // If all file paths fail, inject the matching SVG icon inline
           const wrapper = img.parentElement;
           if (wrapper) {
             wrapper.innerHTML = `
@@ -772,7 +790,7 @@
 
       img.onerror = tryNextSource;
       img.src = candidates[0];
-      if (fav) fav.href = candidates[0];
+      updateFaviconLinks(candidates[0]);
     }
 
     function isCloudHosted() {
