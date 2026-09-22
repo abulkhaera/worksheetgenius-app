@@ -1,1096 +1,1826 @@
-<html lang="id"><head><script data-bard-client-injected="true">(function(firebaseConfig, initialAuthToken, appId) {
-        window.__firebase_config = firebaseConfig;
-        window.__initial_auth_token = initialAuthToken;
-        window.__app_id = appId;
-            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIwNjc3NjE2NzU2Mzg4OTU2MjIwNyIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjXzU4ZTU1ZmZmNWZjYzJhZTFfZXhwb3J0X3ppcC5odG1sLTIzMyJ9LCJleHAiOjE3OTAwNzY1NDAsImlhdCI6MTc5MDA3Mjk0MCwiYWxnIjoiUlMyNTYifQ.O9bi0VIeROD9UgzFVInp5YlbFmd78HiTAirFdlbL4-3Y1fzs5ltdSBgxBrycGG9e_Tcd65_tlp_jHCIVkutIotQc37UguXbSDlhllHaJKbKNQBC5RHaUlz5MaSinzsPHZMq9ZvhXMrPW1yI1sVxHbm2UNzt1SL2g1Jk3VtRKEGVVE5d07--lYOF6aTuVZtd7Tu0Ne4JgnvLn3Dg5ExGucIHodM45NUmHbWdQdXuVdIWUJBnboQP2Lt2VB4M7BY3wJSspDpt0J0rs78LKEvWKEaVMODEzDZVcXb8uU0rZGTBtU5a4Vct_WoKFKwOqe6wzDc6WllRACckJeykevLqsMA","c_58e55fff5fcc2ae1_export_zip.html-233")</script><script data-bard-client-injected="true">
-  document.addEventListener('input', (event) => {
-    if (event.target && (event.target.isContentEditable || event.target.hasAttribute('contenteditable'))) {
-      const clonedDoc = document.cloneNode(true);
-      const injectedScripts = clonedDoc.querySelectorAll('[data-bard-client-injected="true"]');
-      injectedScripts.forEach(el => el.remove());
-      window.parent.postMessage({
-        type: 'inlineEdit',
-        html: '<!DOCTYPE html>\n' + clonedDoc.documentElement.outerHTML
-      }, '*');
-    }
-  });
-</script><script data-bard-client-injected="true">(function(){'use strict';window.addEventListener("message",a=>{a.data&&a.data.type==="SUPPLEMENTAL_DATA_UPDATE"&&window.dispatchEvent(new CustomEvent("supplementaldataupdate",{detail:a.data.data}))});}).call(this);
-</script><script data-bard-client-injected="true">(function() {
-  const SCROLL_KEYS = new Set([
-    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
-    ' ', 'Spacebar', 'PageUp', 'PageDown', 'Home', 'End',
-  ]);
-  const HORIZONTAL_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
-
-  function isTextEntryTarget(target) {
-    if (!target) return false;
-    const tagName = target.tagName;
-    return tagName === 'INPUT' || tagName === 'TEXTAREA' ||
-        tagName === 'SELECT' || target.isContentEditable === true;
-  }
-
-  // An element absorbs the key only if it both overflows on the axis being
-  // scrolled and is configured to scroll on that axis. The cheap dimension
-  // test runs first because getComputedStyle forces a style recalc, and this
-  // runs on every keypress. Each axis is read from its own longhand: the
-  // 'overflow' shorthand serializes as two values when the axes differ, which
-  // is the common 'overflow-x: hidden; overflow-y: auto' pane.
-  function canScroll(node, horizontal) {
-    const overflows = horizontal ? node.scrollWidth > node.clientWidth
-                                 : node.scrollHeight > node.clientHeight;
-    if (!overflows) return false;
-    const style = window.getComputedStyle(node);
-    const overflow = horizontal ? style.overflowX : style.overflowY;
-    return overflow === 'auto' || overflow === 'scroll';
-  }
-
-  // Walks up from the event target so nested scrollers keep their behavior.
-  // <body> is included because pages that pin the root height make it the
-  // scroll container.
-  function hasScrollableAncestor(target, horizontal) {
-    let node = target;
-    while (node && node !== document.documentElement) {
-      if (canScroll(node, horizontal)) return true;
-      node = node.parentElement;
-    }
-    return false;
-  }
-
-  function rootCanScroll(horizontal) {
-    const scroller = document.scrollingElement || document.documentElement;
-    if (!scroller) return false;
-    // Tolerate a pixel of rounding so subpixel layouts do not look scrollable.
-    return horizontal ? scroller.scrollWidth > window.innerWidth + 1
-                      : scroller.scrollHeight > window.innerHeight + 1;
-  }
-
-  window.addEventListener('keydown', function(event) {
-    if (!SCROLL_KEYS.has(event.key)) return;
-    if (event.defaultPrevented) return;
-    // Alt and Meta turn arrows into browser history navigation, and Ctrl is
-    // reserved for shortcuts, so none of them are scroll intent.
-    if (event.altKey || event.metaKey || event.ctrlKey) return;
-
-    const target = event.target;
-    if (isTextEntryTarget(target)) return;
-
-    // Anything that can still absorb the scroll gets to keep it.
-    const horizontal = HORIZONTAL_KEYS.has(event.key);
-    if (rootCanScroll(horizontal)) return;
-    if (hasScrollableAncestor(target, horizontal)) return;
-
-    event.preventDefault();
-  }, {capture: true, passive: false});
-})();</script><script data-bard-client-injected="true">(function() {
-  // Ensure this script is executed only once
-  if (window.firebaseAuthBridgeScriptLoaded) {
-    return;
-  }
-  window.firebaseAuthBridgeScriptLoaded = true;
-
-  let nextTokenPromiseId = 0;
-
-  // Stores { resolve, reject } for ongoing token requests
-  const pendingTokenPromises = {};
-
-  // Listen for messages from the Host Application
-  window.addEventListener('message', function(event) {
-
-    const messageData = event.data;
-
-  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
-      const { success, token, error, promiseId } = messageData ?? {};
-      if (pendingTokenPromises[promiseId]) {
-        if (success) {
-          pendingTokenPromises[promiseId].resolve(token);
-        } else {
-          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
-        }
-        delete pendingTokenPromises[promiseId];
-      }
-    }
-  });
-
-  // Expose a function for the Generated App to request a new Firebase token
-  window.requestNewFirebaseToken = function() {
-    const currentPromiseId = nextTokenPromiseId++;
-    const promise = new Promise((resolve, reject) => {
-      pendingTokenPromises[currentPromiseId] = { resolve, reject };
-    });
-    if (window.parent && window.parent !== window) {
-      window.parent.postMessage({
-        type: 'REQUEST_NEW_FIREBASE_TOKEN',
-        promiseId: currentPromiseId
-      }, '*');
-    } else {
-      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
-      delete pendingTokenPromises[currentPromiseId];
-    }
-    return promise;
-  };
-})();</script><script data-bard-client-injected="true">
-let realOriginalGetUserMedia = null;
-if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
-}
-
-(function() {
-  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
-    try {
-      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
-        get: function() {
-          return undefined; // Or throw an error
-        },
-        configurable: false
-      });
-    } catch (error) {
-      console.error("Error defining prototype getter:", error);
-    }
-  }
-})();
-
-(function() {
-  const pendingMediaResolvers = {};
-  let nextMediaPromiseId = 0;
-
-  function requestMediaPermissions(constraints) {
-    const mediaPromiseId = nextMediaPromiseId++;
-    const promise = new Promise((resolve, reject) => {
-      pendingMediaResolvers[mediaPromiseId] = (granted) => {
-        delete pendingMediaResolvers[mediaPromiseId];
-        resolve(granted);
-      };
-    });
-
-    window.parent.postMessage({
-      type: 'requestMediaPermission',
-      constraints: constraints,
-      promiseId: mediaPromiseId,
-    }, '*');
-
-    return promise;
-  }
-
-  let originalGetUserMedia = realOriginalGetUserMedia;
-
-  function interceptGetUserMedia() {
-    if (navigator.mediaDevices) {
-      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
-        value: function(constraints) {
-          return requestMediaPermissions(constraints).then((granted) => {
-            if (granted) {
-              if (originalGetUserMedia) {
-                return originalGetUserMedia(constraints);
-              } else {
-                throw new Error("Original getUserMedia not available.");
-              }
-            } else {
-              throw new DOMException('Permission denied', 'NotAllowedError');
-            }
-          });
-        },
-        writable: false,
-        configurable: false
-      });
-    }
-  }
-
-  interceptGetUserMedia();
-
-  const observer = new MutationObserver(function(mutationsList, observer) {
-    for (const mutation of mutationsList) {
-      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
-        interceptGetUserMedia();
-      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
-        interceptGetUserMedia();
-      } else if (mutation.type === 'childList' && mutation.addedNodes) {
-        mutation.addedNodes.forEach(node => {
-          if (node === navigator.mediaDevices) {
-            interceptGetUserMedia();
-          }
-        });
-      }
-    }
-  });
-
-  function interceptSpeechRecognition() {
-    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
-      return;
-    }
-
-    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    const SpeechRecognitionWrapper = function(...args) {
-      const recognizer = new OriginalSpeechRecognition(...args);
-      const originalStart = recognizer.start.bind(recognizer);
-
-      recognizer.start = function() {
-        requestMediaPermissions({ audio: true }).then(granted => {
-          if (granted) {
-            originalStart();
-          } else {
-            const errorEvent = new SpeechRecognitionErrorEvent('error');
-            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
-            recognizer.dispatchEvent(errorEvent);
-          }
-        });
-      };
-
-      return recognizer;
-    };
-
-    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
-    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
-
-    if (window.SpeechRecognition) {
-      window.SpeechRecognition = SpeechRecognitionWrapper;
-    }
-    if (window.webkitSpeechRecognition) {
-      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
-    }
-  }
-
-  interceptSpeechRecognition();
-
-  window.addEventListener('message', function(event) {
-    if (event.data) {
-      if (event.data.type === 'resolveMediaPermission') {
-        const { promiseId, granted } = event.data;
-        if (pendingMediaResolvers[promiseId]) {
-          pendingMediaResolvers[promiseId](granted);
-        }
-      }
-    }
-  });
-
-})();</script><script ws-interception-config="{&quot;parentOrigin&quot;:&quot;https://gemini.google.com&quot;,&quot;proxiedDomains&quot;:[]}" data-bard-client-injected="true">(function(){'use strict';var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,d,e){if(b==Array.prototype||b==Object.prototype)return b;b[d]=e.value;return b};function v(b){b=["object"==typeof globalThis&&globalThis,b,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var d=0;d<b.length;++d){var e=b[d];if(e&&e.Math==Math)return e}throw Error("Cannot find global object");}var w=v(this);
-function y(b,d){if(d)a:{var e=w;b=b.split(".");for(var h=0;h<b.length-1;h++){var k=b[h];if(!(k in e))break a;e=e[k]}b=b[b.length-1];h=e[b];d=d(h);d!=h&&d!=null&&u(e,b,{configurable:!0,writable:!0,value:d})}}function z(b){function d(h){return b.next(h)}function e(h){return b.throw(h)}return new Promise(function(h,k){function m(n){n.done?h(n.value):Promise.resolve(n.value).then(d,e).then(m,k)}m(b.next())})}y("globalThis",function(b){return b||w});/*
-
- Copyright The Closure Library Authors.
- SPDX-License-Identifier: Apache-2.0
-*/
-function A(b,d){function e(){}e.prototype=d.prototype;b.j=d.prototype;b.prototype=new e;b.prototype.constructor=b;b.h=function(h,k,m){for(var n=Array(arguments.length-2),p=2;p<arguments.length;p++)n[p-2]=arguments[p];return d.prototype[k].apply(h,n)}};function B(b,d,e="*"){function h(a){if(typeof a==="string")return F.encode(a).buffer;if(a instanceof ArrayBuffer)return a.slice(0);if(ArrayBuffer.isView(a))return a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);throw Error("Invalid data type");}function k(a){a=h(a);var f={type:"send",data:new Uint8Array(a)},g;(g=r)==null||g.postMessage(f,[a])}function m(){if(!r)throw Error("Data port not captured yet.");r.onmessage=a=>{if(a.data.type==="message"){a=new MessageEvent("message",{data:G.decode(a.data.data)});
-let f;(f=c.onmessage)==null||f.call(c,a);c.dispatchEvent(a)}}}function n(){if(!t)throw Error("Control port not captured yet.");t.onmessage=a=>{switch(a.data.type){case "open":l=1;var f=new Event("open"),g;(g=c.onopen)==null||g.call(c,f);c.dispatchEvent(f);q.forEach(H=>{k(H)});q=[];break;case "close":g=a.data;l=3;g=new CloseEvent("close",{code:g.code,reason:g.reason,wasClean:g.wasClean});(f=c.onclose)==null||f.call(c,g);c.dispatchEvent(g);break;case "error":l=3;f=new Event("error");let x;(x=c.onerror)==
-null||x.call(c,f);c.dispatchEvent(f)}}}function p(a){return z(function*(){var f=new MessageChannel;t=f.port1;var g=new MessageChannel;r=g.port1;n();m();window.parent.postMessage({type:"websocket_open",portOrdering:["control","data"],url:b,protocols:a||[],connectionId:I},e,[f.port2,g.port2])}())}var c=Reflect.construct(EventTarget,[],new.target);c.CONNECTING=0;c.OPEN=1;c.CLOSING=2;c.CLOSED=3;c.url=b;c.binaryType="arraybuffer";c.protocol="";c.i="";var l=0,t=null,r=null,q=[],F=new TextEncoder,G=new TextDecoder;
-c.onopen=null;c.onmessage=null;c.onclose=null;c.onerror=null;Object.defineProperty(c,"readyState",{get:()=>l,enumerable:!0,configurable:!0});Object.defineProperty(c,"bufferedAmount",{get:()=>{var a=0;q.forEach(f=>{a+=typeof f==="string"?f.length:f.byteLength});return a},enumerable:!0,configurable:!0});var I=function(){var a;return((a=globalThis.crypto)==null?0:a.randomUUID)?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,f=>{var g=Math.random()*16|0;return(f===
-"x"?g:g&3|8).toString(16)})}();c.send=a=>{if(l===1)a instanceof Blob?a.arrayBuffer().then(f=>{k(f)}):k(a);else if(l===0)if(typeof a==="string")q.push(a);else if(a instanceof ArrayBuffer||ArrayBuffer.isView(a))q.push(h(a));else throw Error("Sending Blob is not supported before the connection is open.");else console.debug("WebSocket send called in CLOSING or CLOSED state; ignored.")};c.close=(a=1E3,f="")=>{if(l!==2&&l!==3){l=2;a={type:"close",code:a,reason:f,wasClean:a===1E3};var g;(g=t)==null||g.postMessage(a)}};
-Promise.resolve().then(()=>p(d));return c}A(B,EventTarget);var C=document.currentScript,D=C==null?void 0:C.getAttribute("ws-interception-config");if(!D)throw Error("WebSocket Interceptor: Missing ws-interception-config attribute in the script tag.");var E=JSON.parse(D);if(!E.parentOrigin||typeof E.parentOrigin!=="string")throw Error("WebSocket Interceptor: Invalid parentOrigin in ws-interception-config");
-(function(b){var d=Object.getOwnPropertyDescriptor(window,"WebSocket");if(!d||d.writable||d.configurable)d=Object.assign(function(e,h){try{let k=(new URL(e)).hostname;if(b.proxiedDomains.some(m=>k===m||k.endsWith(`.${m}`)))return new B(e,h,b.parentOrigin)}catch(k){throw window.parent.postMessage({type:"websocket_blocked",url:e,reason:"blocked_invalid_url"},b.parentOrigin),new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");}window.parent.postMessage({type:"websocket_blocked",
-url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");},{CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3}),Object.defineProperty(window,"WebSocket",{value:d,writable:!1,configurable:!1})})({proxiedDomains:E.proxiedDomains||[],parentOrigin:E.parentOrigin});}).call(this);
-</script><script data-bard-client-injected="true">((function(modelInformation) {
-  const originalFetch = window.fetch;
-  // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
-  let googleLlmBaseApiUrls = [
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':streamGenerateContent',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':generateContent',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predict',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predictLongRunning',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageEditModelName + ':generateContent',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageTransformModelName + ':generateContent',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predict',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predictLongRunning',
-    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.ttsModelName + ':generateContent',
-  ];
-  modelInformation.deprecatedTextModelNames.forEach((modelName) => {
-    googleLlmBaseApiUrls.push(
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
-    );
-  });
-  modelInformation.deprecatedImageModelNames.forEach((modelName) => {
-    googleLlmBaseApiUrls.push(
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predict',
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predictLongRunning',
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
-    );
-  });
-  modelInformation.deprecatedGenerateImageModelNames.forEach((modelName) => {
-    googleLlmBaseApiUrls.push(
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
-    );
-  });
-  modelInformation.deprecatedImageTransformModelNames.forEach((modelName) => {
-    googleLlmBaseApiUrls.push(
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
-      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
-    );
-  });
-
-  const pendingFetchResolvers = {};
-  let nextPromiseId = 0;
-
-  function handleStringInput(input, optionsArgument) {
-    const actualUrl = input;
-    const fetchCallArgs = [actualUrl, optionsArgument];
-    const effectiveOptions = optionsArgument || {};
-    const bodyForApiKeyCheck = effectiveOptions.body;
-    const bodyForPostMessage = effectiveOptions.body;
-    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
-  }
-
-  function handleRequestInput(input, optionsArgument) {
-    const actualUrl = input.url;
-    const fetchCallArgs = [input, optionsArgument];
-    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
-    let bodyForApiKeyCheck;
-    let bodyForPostMessage;
-
-    if (optionsArgument) {
-      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
-      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
-      if ('body' in optionsArgument) {
-        bodyForApiKeyCheck = optionsArgument.body;
-        bodyForPostMessage = optionsArgument.body;
-      } else {
-        bodyForApiKeyCheck = undefined;
-        bodyForPostMessage = input.body;
-      }
-    } else {
-      bodyForApiKeyCheck = undefined;
-      bodyForPostMessage = input.body;
-    }
-    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
-  }
-
-  window.fetch = function(input, optionsArgument) {
-    let actualUrl;
-    let fetchCallArgs;
-    let effectiveOptions = {};
-    let bodyForApiKeyCheck;
-    let bodyForPostMessage;
-
-    if (typeof input === 'string') {
-      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
-    } else if (input instanceof Request) {
-      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
-    } else {
-      return originalFetch.apply(window, [input, optionsArgument]);
-    }
-
-    effectiveOptions.method = effectiveOptions.method || 'GET';
-    if (!effectiveOptions.headers) {
-      effectiveOptions.headers = new Headers();
-    }
-
-
-    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
-      let apiKeyIsNull = true;
-
-      const regex = new RegExp("models/([^:]+)");
-      const modelNameMatch = actualUrl.match(regex);
-      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
-
-
-      try {
-        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
-        const apiKeyParam = urlObject.searchParams.get('key');
-        if (apiKeyParam) {
-          apiKeyIsNull = false;
-        }
-      } catch (e) {
-        // Continue checks even if URL parsing fails
-      }
-
-      if (apiKeyIsNull && effectiveOptions.headers) {
-        const h = new Headers(effectiveOptions.headers);
-        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
-        if (apiKeyHeaderValue) {
-          apiKeyIsNull = false;
-          return originalFetch.apply(window, fetchCallArgs);
-        }
-      }
-
-      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
-        try {
-          const bodyData = JSON.parse(bodyForApiKeyCheck);
-          if (bodyData && bodyData.apiKey) {
-            apiKeyIsNull = false;
-            return originalFetch.apply(window, fetchCallArgs);
-          }
-        } catch (e) {
-          // Ignore JSON parsing errors
-        }
-      }
-
-      if(apiKeyIsNull) {
-        const promiseId = nextPromiseId++;
-        const promise = new Promise((resolve) => {
-          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
-            delete pendingFetchResolvers[promiseId];
-            resolve(resolvedResponse);
-          };
-        });
-
-        let serializedBodyForPostMessage;
-        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
-            serializedBodyForPostMessage = bodyForPostMessage;
-        } else if (bodyForPostMessage instanceof ReadableStream) {
-            serializedBodyForPostMessage = null;
-        } else {
-            try {
-                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
-            } catch (e) {
-                serializedBodyForPostMessage = null;
-            }
-        }
-
-        const messageOptions = {
-            method: effectiveOptions.method,
-            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
-            body: serializedBodyForPostMessage
-        };
-
-        window.parent.postMessage({
-          type: 'requestFetch',
-          url: actualUrl,
-          modelName: modelName,
-          options: messageOptions,
-          promiseId: promiseId,
-        }, '*');
-
-        return promise;
-      }
-      return originalFetch.apply(window, fetchCallArgs);
-    }
-    return originalFetch.apply(window, fetchCallArgs);
-  };
-
-  window.addEventListener('message', function(event) {
-    if (event.data && event.data.type === 'resolveFetch') {
-      const { promiseId, response } = event.data;
-      if (pendingFetchResolvers[promiseId]) {
-        try {
-          const reconstructedResponse = new Response(response.body, {
-            status: response.status,
-            statusText: response.statusText,
-            headers: new Headers(response.headers),
-          });
-          pendingFetchResolvers[promiseId](reconstructedResponse);
-        } catch (error) {
-          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
-        }
-      }
-    }
-  });
-
-}))({"textModelName":"gemini-3-flash-preview","imageModelName":"imagen-4.0-generate-001","imageEditModelName":"gemini-3.1-flash-image","imageTransformModelName":"gemini-3-pro-image","videoModelName":"veo-2.0-generate-001","ttsModelName":"gemini-2.5-flash-preview-tts","deprecatedTextModelNames":["gemini-2.0-flash","gemini-2.5-flash","gemini-2.5-flash-preview-04-17","gemini-2.5-flash-preview-05-20","gemini-2.5-flash-preview-09-2025"],"deprecatedImageModelNames":["imagen-3.0-generate-001","imagen-3.0-generate-002"],"deprecatedGenerateImageModelNames":["gemini-2.5-flash-image-preview","gemini-2.5-flash-image","gemini-3.1-flash-image-preview"],"deprecatedImageTransformModelNames":["gemini-3-pro-image-preview-11-2025"]})</script><script data-bard-client-injected="true">(function(){'use strict';function a(){window.parent.postMessage({type:"interaction"},"*")}window.addEventListener("click",a,{capture:!0,passive:!0});window.addEventListener("touchstart",a,{capture:!0,passive:!0});window.addEventListener("keydown",a,{capture:!0,passive:!0});}).call(this);
-</script><script data-bard-client-injected="true">(function() {
-  const originalConsoleLog = console.log;
-  const originalConsoleError = console.error;
-
-    /**
-   * Normalizes an error event or a promise rejection reason into a structured error object.
-   * @param {*} errorEventOrReason The error object or reason.
-   * @return {object} Structured error data { message, name, stack }.
-   */
-  function getErrorObject(errorEventOrReason) {
-    if (errorEventOrReason instanceof Error) {
-      return {
-        message: errorEventOrReason.message,
-        name: errorEventOrReason.name,
-        stack: errorEventOrReason.stack,
-      };
-    }
-    // Fallback for non-Error objects.
-    try {
-      return {
-        message: JSON.stringify(errorEventOrReason),
-        name: 'UnknownErrorType',
-        stack: null,
-      };
-    } catch (e) {
-      return {
-        message: String(errorEventOrReason),
-        name: 'UnknownErrorTypeNonStringifiable',
-        stack: null,
-      };
-    }
-  }
-
-  /**
-   * Converts an array of arguments (from log/error) into a single string.
-   * Handles Error objects specially to include their message and stack.
-   * @param {Array<*>} args - Arguments passed to console methods.
-   * @return {string} A string representation of the arguments.
-   */
-  function stringifyArgs(args) {
-    return args
-      .map((arg) => {
-        if (arg instanceof Error) {
-          const {message, stack} = arg;
-          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
-        }
-        if (typeof arg === 'object' && arg !== null) {
-          try {
-            return JSON.stringify(arg);
-          } catch (error) {
-            return '[Circular Object]';
-          }
-        } else {
-          return String(arg);
-        }
-      })
-      .join(' ');
-  }
-
-  console.log = function(...args) {
-    const logString = stringifyArgs(args);
-    window.parent.postMessage({ type: 'log', message: logString }, '*');
-    originalConsoleLog.apply(console, args);
-  };
-
-  console.error = function(...args) {
-    let errorData;
-    if (args.length > 0 && args[0] instanceof Error) {
-      const err = args[0];
-      // If the first arg is an Error, capture its details.
-      errorData = {
-        type: 'error',
-        source: 'CONSOLE_ERROR',
-        ...getErrorObject(err),
-        rawArgsString: stringifyArgs(args.slice(1)),
-        timestamp: new Date().toISOString(),
-      };
-    } else {
-      // If not an Error object, treat all args as a general error message.
-      errorData = {
-        type: 'error',
-        source: 'CONSOLE_ERROR',
-        message: stringifyArgs(args),
-        name: 'ConsoleLoggedError',
-        stack: null,
-        timestamp: new Date().toISOString(),
-      };
-    }
-    window.parent.postMessage(errorData, '*');
-    originalConsoleError.apply(console, args);
-  };
-
-  // Listen for global unhandled synchronous errors.
-  window.addEventListener('error', function(event) {
-    const errorDetails = event.error ? getErrorObject(event.error) : {
-      message: event.message,
-      name: 'GlobalError',
-      stack: null,
-      filename: event.filename,
-      lineno: event.lineno,
-      colno: event.colno,
-    };
-
-    window.parent.postMessage({
-      type: 'error',
-      source: 'global',
-      ...errorDetails,
-      message: errorDetails.message || event.message,
-      timestamp: new Date().toISOString(),
-    }, '*');
-  });
-
-  // Listen for unhandled promise rejections (asynchronous errors).
-  window.addEventListener('unhandledrejection', function(event) {
-    const errorDetails = getErrorObject(event.reason);
-
-    window.parent.postMessage({
-      type: 'error',
-      source: 'unhandledrejection',
-      ...errorDetails,
-      message: errorDetails.message || 'Unhandled Promise Rejection',
-      timestamp: new Date().toISOString(),
-    }, '*');
-  });
-
-})();</script>
+<!DOCTYPE html>
+<html lang="id">
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WorksheetGenius ID - Unduh Paket Lengkap (ZIP)</title>
+  <title>WorksheetGenius ID - Generator Lembar Kerja Siswa A4</title>
+  
+  <!-- App Favicon with primary Logo.png source -->
+  <link rel="icon" type="image/png" href="Logo.png" id="favIcon">
+  <link rel="apple-touch-icon" href="Logo.png">
+
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- JSZip and FileSaver for in-browser archive compilation -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" crossorigin="anonymous"></script>
-<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.mx-auto{margin-left:auto;margin-right:auto}.mb-2{margin-bottom:0.5rem}.mb-6{margin-bottom:1.5rem}.mt-3{margin-top:0.75rem}.flex{display:flex}.inline-flex{display:inline-flex}.h-12{height:3rem}.min-h-screen{min-height:100vh}.min-h-\[1\.25rem\]{min-height:1.25rem}.w-12{width:3rem}.w-full{width:100%}.max-w-2xl{max-width:42rem}.transform{transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.items-center{align-items:center}.justify-center{justify-content:center}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.space-y-1 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.25rem * var(--tw-space-y-reverse))}.space-y-1\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.375rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.375rem * var(--tw-space-y-reverse))}.rounded-2xl{border-radius:1rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-indigo-100{--tw-border-opacity:1;border-color:rgb(224 231 255 / var(--tw-border-opacity, 1))}.border-slate-200{--tw-border-opacity:1;border-color:rgb(226 232 240 / var(--tw-border-opacity, 1))}.border-indigo-200{--tw-border-opacity:1;border-color:rgb(199 210 254 / var(--tw-border-opacity, 1))}.bg-indigo-600{--tw-bg-opacity:1;background-color:rgb(79 70 229 / var(--tw-bg-opacity, 1))}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.bg-white\/90{background-color:rgb(255 255 255 / 0.9)}.bg-indigo-50{--tw-bg-opacity:1;background-color:rgb(238 242 255 / var(--tw-bg-opacity, 1))}.bg-gradient-to-br{background-image:linear-gradient(to bottom right, var(--tw-gradient-stops))}.from-indigo-50{--tw-gradient-from:#eef2ff var(--tw-gradient-from-position);--tw-gradient-to:rgb(238 242 255 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.via-slate-50{--tw-gradient-to:rgb(248 250 252 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #f8fafc var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-blue-50{--tw-gradient-to:#eff6ff var(--tw-gradient-to-position)}.p-4{padding:1rem}.p-6{padding:1.5rem}.p-5{padding:1.25rem}.px-4{padding-left:1rem;padding-right:1rem}.py-10{padding-top:2.5rem;padding-bottom:2.5rem}.px-8{padding-left:2rem;padding-right:2rem}.py-3\.5{padding-top:0.875rem;padding-bottom:0.875rem}.pb-4{padding-bottom:1rem}.pl-4{padding-left:1rem}.pl-8{padding-left:2rem}.pt-4{padding-top:1rem}.text-center{text-align:center}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.font-sans{font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"}.text-2xl{font-size:1.5rem;line-height:2rem}.text-\[11px\]{font-size:11px}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.text-base{font-size:1rem;line-height:1.5rem}.font-black{font-weight:900}.font-bold{font-weight:700}.font-semibold{font-weight:600}.leading-relaxed{line-height:1.625}.tracking-tight{letter-spacing:-0.025em}.text-amber-500{--tw-text-opacity:1;color:rgb(245 158 11 / var(--tw-text-opacity, 1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.text-indigo-400{--tw-text-opacity:1;color:rgb(129 140 248 / var(--tw-text-opacity, 1))}.text-sky-400{--tw-text-opacity:1;color:rgb(56 189 248 / var(--tw-text-opacity, 1))}.text-slate-200{--tw-text-opacity:1;color:rgb(226 232 240 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-slate-800{--tw-text-opacity:1;color:rgb(30 41 59 / var(--tw-text-opacity, 1))}.text-slate-900{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-amber-400{--tw-text-opacity:1;color:rgb(251 191 36 / var(--tw-text-opacity, 1))}.text-indigo-300{--tw-text-opacity:1;color:rgb(165 180 252 / var(--tw-text-opacity, 1))}.text-indigo-700{--tw-text-opacity:1;color:rgb(67 56 202 / var(--tw-text-opacity, 1))}.text-purple-300{--tw-text-opacity:1;color:rgb(216 180 254 / var(--tw-text-opacity, 1))}.text-sky-300{--tw-text-opacity:1;color:rgb(125 211 252 / var(--tw-text-opacity, 1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85 / var(--tw-text-opacity, 1))}.shadow-inner{--tw-shadow:inset 0 2px 4px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:inset 0 2px 4px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-xl{--tw-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-indigo-200{--tw-shadow-color:#c7d2fe;--tw-shadow:var(--tw-shadow-colored)}.backdrop-blur-md{--tw-backdrop-blur:blur(12px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.hover\:-translate-y-0\.5:hover{--tw-translate-y:-0.125rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:bg-indigo-700:hover{--tw-bg-opacity:1;background-color:rgb(67 56 202 / var(--tw-bg-opacity, 1))}.hover\:shadow-indigo-300:hover{--tw-shadow-color:#a5b4fc;--tw-shadow:var(--tw-shadow-colored)}.active\:bg-indigo-800:active{--tw-bg-opacity:1;background-color:rgb(55 48 163 / var(--tw-bg-opacity, 1))}@media (min-width: 640px){.sm\:w-auto{width:auto}.sm\:p-8{padding:2rem}.sm\:text-2xl{font-size:1.5rem;line-height:2rem}.sm\:text-sm{font-size:0.875rem;line-height:1.25rem}}</style></head>
-<body class="bg-gradient-to-br from-indigo-50 via-slate-50 to-blue-50 min-h-screen py-10 px-4 font-sans text-slate-800">
+  <!-- html2pdf for direct A4 PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-  <div class="max-w-2xl mx-auto bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-indigo-100 p-6 sm:p-8">
-    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200">
-      <div class="w-12 h-12 bg-indigo-600 text-white rounded-xl flex items-center justify-center text-2xl shadow-md">
-        📦
+  <style>
+    :root {
+      --font-sans: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: linear-gradient(135deg, #f0f4ff 0%, #f8fafc 50%, #f1f5f9 100%);
+      min-height: 100vh;
+      color: #0f172a;
+    }
+
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(226, 232, 240, 0.85);
+    }
+
+    .glass-header {
+      background: linear-gradient(135deg, #3730a3 0%, #4338ca 40%, #2563eb 100%);
+      box-shadow: 0 10px 25px -5px rgba(55, 48, 163, 0.25);
+    }
+
+    .brand-logo-card {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 8px 18px 8px 12px;
+      border-radius: 20px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
+    }
+
+    .brand-logo-wrapper {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      flex-shrink: 0;
+      padding: 2px;
+    }
+
+    /* Worksheet A4 Standard Canvas */
+    .ws-page {
+      background: #ffffff;
+      width: 100%;
+      max-width: 210mm;
+      min-height: 297mm;
+      padding: 16mm 14mm;
+      box-shadow: 0 12px 35px -8px rgba(15, 23, 42, 0.12);
+      position: relative;
+      page-break-after: always;
+      box-sizing: border-box;
+      margin: 0 auto 28px auto;
+      border-radius: 12px;
+    }
+
+    /* Badge Difficulty Indicators */
+    .diff-pill {
+      font-size: 0.76rem;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+    .diff-mudah { background: #dcfce7; color: #15803d; border: 1.5px solid #86efac; }
+    .diff-sedang { background: #fef9c3; color: #a16207; border: 1.5px solid #fde047; }
+    .diff-sulit { background: #fee2e2; color: #b91c1c; border: 1.5px solid #fca5a5; }
+
+    /* Reading Passage Box */
+    .reading-passage-box {
+      background: #fffbeb;
+      border: 2px solid #fde68a;
+      border-radius: 14px;
+      padding: 18px 22px;
+      margin-bottom: 22px;
+      box-shadow: 0 2px 6px rgba(245, 158, 11, 0.05);
+    }
+    .reading-passage-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 1.05rem;
+      color: #92400e;
+      margin-bottom: 10px;
+      border-bottom: 1.5px dashed #fcd34d;
+      padding-bottom: 6px;
+    }
+    .reading-passage-text {
+      font-size: 1rem;
+      line-height: 1.8;
+      color: #1e293b;
+      text-align: justify;
+      white-space: pre-line;
+    }
+
+    /* PAUD & TK Layout */
+    .ws-paud-tk {
+      font-family: 'Fredoka', cursive, sans-serif;
+      border: 8px solid #84cc16;
+      border-radius: 26px;
+      background-color: #ffffff;
+      color: #1e293b;
+      padding: 22px;
+      position: relative;
+      background-image: radial-gradient(#f0fdf4 18%, transparent 19%);
+      background-size: 22px 22px;
+    }
+
+    .ws-paud-tk .tk-banner-wrap {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .ws-paud-tk .tk-banner {
+      background: linear-gradient(180deg, #fef08a 0%, #facc15 100%);
+      border: 3.5px solid #d97706;
+      border-radius: 40px;
+      padding: 8px 36px;
+      text-align: center;
+      box-shadow: 0 4px 0 #b45309;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ws-paud-tk .tk-banner h2 {
+      font-size: 1.65rem;
+      font-weight: 700;
+      color: #1d4ed8;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      text-shadow: 1px 1px 0 #fff;
+    }
+
+    .ws-paud-tk .tk-student-info {
+      background: #eff6ff;
+      border: 2px solid #60a5fa;
+      border-radius: 24px;
+      padding: 8px 24px;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      font-size: 1.05rem;
+      color: #1e40af;
+      font-weight: 600;
+    }
+
+    .ws-paud-tk .tk-instruction-pill {
+      background: #ffe4e6;
+      border: 2px solid #fda4af;
+      border-radius: 22px;
+      padding: 8px 18px;
+      text-align: center;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #be123c;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    /* AI Image Frames */
+    .ai-image-frame {
+      border: 4px solid #38bdf8;
+      border-radius: 22px;
+      background: #ffffff;
+      padding: 0;
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.15);
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .ai-coloring-frame { min-height: 480px; }
+    .ai-diff-frame { min-height: 380px; }
+
+    .ai-generated-img {
+      width: 100%;
+      height: auto;
+      max-height: 520px;
+      object-fit: contain;
+      border-radius: 18px;
+      background: #ffffff;
+      display: block;
+    }
+
+    .ai-loading-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 36px;
+      gap: 14px;
+      color: #0284c7;
+      font-weight: 700;
+      text-align: center;
+      font-size: 1.05rem;
+    }
+
+    /* Pattern Matching Rows */
+    .pattern-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #ffffff;
+      border: 2.5px solid #bae6fd;
+      border-radius: 16px;
+      padding: 12px 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    }
+    .pattern-num {
+      background: #ec4899;
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.2rem;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    .pattern-sequence {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 2.4rem;
+      flex: 1;
+    }
+    .pattern-q-box {
+      width: 52px;
+      height: 52px;
+      border: 3px dashed #0284c7;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      color: #0284c7;
+      background: #f0f9ff;
+      font-weight: bold;
+    }
+    .pattern-options-divider {
+      width: 2px;
+      height: 44px;
+      border-left: 2px dashed #cbd5e1;
+      margin: 0 16px;
+    }
+    .pattern-options-group { display: flex; gap: 10px; }
+    .pattern-opt-box {
+      width: 52px;
+      height: 52px;
+      border: 2px solid #7dd3fc;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.1rem;
+      background: #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    }
+
+    /* Matching Line */
+    .match-table {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 12px 16px;
+    }
+    .match-col { display: flex; flex-direction: column; gap: 16px; flex: 1; }
+    .match-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      border-radius: 16px;
+      border: 2.5px solid #cbd5e1;
+      background: #ffffff;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #334155;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .match-dot {
+      width: 18px;
+      height: 18px;
+      background-color: #3b82f6;
+      border: 3px solid #bfdbfe;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* SD Styling */
+    .ws-sd {
+      font-family: 'Nunito', sans-serif;
+      border: 5px solid #3b82f6;
+      border-radius: 16px;
+      background-color: #ffffff;
+      color: #1e293b;
+    }
+    .ws-sd .ws-header {
+      border-bottom: 3.5px solid #3b82f6;
+      padding-bottom: 14px;
+      margin-bottom: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .ws-sd .ws-title { font-size: 1.65rem; color: #1d4ed8; font-weight: 800; }
+    .ws-sd .ws-student-info {
+      background: #eff6ff;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1.5px solid #bfdbfe;
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      margin-bottom: 18px;
+      font-size: 1.02rem;
+    }
+    .ws-sd .ws-instructions {
+      background: #f0fdf4;
+      border-left: 5px solid #22c55e;
+      padding: 10px 16px;
+      font-weight: 700;
+      color: #15803d;
+      margin-bottom: 22px;
+      font-size: 0.98rem;
+    }
+    .ws-sd .q-item {
+      margin-bottom: 18px;
+      padding: 12px 16px;
+      background: #f8fafc;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      font-size: 1.02rem;
+      line-height: 1.6;
+    }
+    .ws-sd .q-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+      padding-left: 18px;
+    }
+
+    /* SMP & SMA */
+    .ws-smp-sma {
+      font-family: 'Times New Roman', Times, serif;
+      border: 1px solid #000;
+      border-radius: 0;
+      background-color: #ffffff;
+      color: #000;
+    }
+    .ws-smp-sma .ws-header {
+      border-bottom: 3px double #000;
+      padding-bottom: 14px;
+      margin-bottom: 18px;
+      text-align: center;
+    }
+    .ws-smp-sma .ws-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .ws-smp-sma .ws-student-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      font-size: 1.05rem;
+      line-height: 1.8;
+    }
+    .ws-smp-sma .ws-instructions {
+      border: 1px solid #000;
+      padding: 9px;
+      margin-bottom: 22px;
+      font-weight: bold;
+      background: #f9f9f9;
+    }
+    .ws-smp-sma .q-item {
+      margin-bottom: 18px;
+      font-size: 1.05rem;
+      text-align: justify;
+      line-height: 1.5;
+    }
+    .ws-smp-sma .q-options { list-style-type: upper-alpha; margin-left: 24px; margin-top: 6px; }
+
+    /* Dedicated Answer Key Page */
+    .ws-answer-page {
+      border: 3.5px dashed #6366f1 !important;
+      border-radius: 16px;
+      background-color: #faf5ff;
+    }
+    .answer-key-badge {
+      display: inline-block;
+      background: #7c3aed;
+      color: white;
+      font-weight: 800;
+      padding: 5px 18px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+    .answer-key-card {
+      background: white;
+      border: 2px solid #ddd6fe;
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 14px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.04);
+    }
+    .answer-key-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 9px 0;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+    .answer-key-num {
+      background: #ede9fe;
+      color: #6d28d9;
+      font-weight: bold;
+      padding: 2px 9px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      font-size: 0.88rem;
+    }
+
+    .tk-footer {
+      text-align: center;
+      font-size: 0.92rem;
+      color: #059669;
+      font-weight: bold;
+      margin-top: 18px;
+    }
+
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid #bae6fd;
+      border-top-color: #0284c7;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @page {
+      size: A4 portrait;
+      margin: 12mm 10mm;
+    }
+
+    @media print {
+      body { background: none !important; padding: 0 !important; margin: 0 !important; }
+      .no-print { display: none !important; }
+      .ws-page {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: auto !important;
+        padding: 6mm 8mm !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        margin: 0 0 20px 0 !important;
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    }
+  </style>
+</head>
+<body class="py-6 px-3 sm:px-6">
+
+  <div class="max-w-5xl mx-auto">
+    
+    <!-- Top Navigation Header -->
+    <header class="glass-header text-white rounded-2xl p-6 sm:p-8 mb-6 shadow-xl relative overflow-hidden no-print">
+      <div class="absolute -right-12 -top-12 w-52 h-52 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
+        <div class="flex flex-col items-start text-left">
+          
+          <!-- Embedded Brand Logo Card using Logo.png -->
+          <div class="brand-logo-card mb-3">
+            <div class="brand-logo-wrapper">
+              <img 
+                id="mainBrandLogo"
+                src="Logo.png" 
+                alt="WorksheetGenius ID Logo" 
+                class="w-full h-full object-contain"
+              >
+            </div>
+            <div class="flex flex-col text-left">
+              <span class="text-xl sm:text-2xl font-black tracking-tight leading-none text-white drop-shadow-sm">
+                WorksheetGenius<span class="text-amber-300">.id</span>
+              </span>
+              <span class="text-[11px] font-semibold text-white/80 tracking-wide uppercase mt-1">
+                Generator Lembar Kerja Kurikulum Merdeka
+              </span>
+            </div>
+          </div>
+
+          <!-- Kurikulum Merdeka AI Pill -->
+          <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase mb-2">
+            <span>🚀 Kurikulum Merdeka AI</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>
+            <span>Edisi 2026</span>
+          </div>
+
+          <p class="text-white/85 text-xs sm:text-sm mt-1 max-w-xl text-left">
+            Buat Lembar Kerja Peserta Didik (LKPD) otomatis berbasis Taksonomi Bloom & Kurikulum Merdeka untuk PAUD hingga SMA.
+          </p>
+        </div>
+        
+        <div class="flex items-center gap-3">
+          <button type="button" onclick="toggleBackendSettings()" class="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 backdrop-blur-md px-4 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-sm">
+            <span>⚙️</span>
+            <span>Koneksi AI</span>
+            <span id="connIndicator" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          </button>
+        </div>
       </div>
-      <div>
-        <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-          WorksheetGenius<span class="text-amber-500">.id</span> Package Exporter
-        </h1>
-        <p class="text-xs sm:text-sm text-slate-500">
-          Unduh seluruh file proyek dalam satu berkas arsip <strong>.ZIP</strong> siap deploy.
-        </p>
+    </header>
+
+    <!-- Collapsible Settings Panel -->
+    <div id="backendSettingsBox" class="hidden glass-panel rounded-2xl p-6 mb-6 shadow-md border-2 border-indigo-200 no-print transition-all duration-300">
+      <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-200">
+        <div class="flex items-center gap-2 text-indigo-900 font-bold text-base">
+          <span>🛠️</span>
+          <span>Pengaturan Koneksi AI (Server Proxy / Cloud)</span>
+        </div>
+        <button type="button" onclick="toggleBackendSettings()" class="text-slate-400 hover:text-slate-600 text-sm font-semibold">Tutup ✕</button>
+      </div>
+
+      <div class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 mb-4 leading-relaxed">
+        <strong>💡 Mode Cloud Aktif:</strong> Saat aplikasi ini di-deploy di Vercel, panggilan AI otomatis dialihkan ke endpoint serverless Vercel (kunci API aman di cloud). Anda tidak wajib mengisi form di bawah ini kecuali ingin menghubungkan ke kunci kustom pribadi.
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-indigo-50/50 hover:bg-white p-4 rounded-xl border-2 border-indigo-200 transition-colors">
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-xs font-bold text-slate-800">Opsional: Google Gemini API Key Langsung</label>
+            <span class="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-bold">Manual</span>
+          </div>
+          <p class="text-xs text-slate-600 mb-2.5">
+            Dapatkan API Key di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-600 underline font-semibold">Google AI Studio</a> jika ingin menimpa kunci bawaan:
+          </p>
+          <input type="password" id="customApiKey" placeholder="AIzaSy... atau AQ.Ab..." class="w-full text-xs font-mono p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          <span class="text-[11px] text-slate-500 mt-1 block">Tersimpan otomatis di peramban komputer Anda.</span>
+        </div>
+
+        <div class="bg-slate-50 hover:bg-white p-4 rounded-xl border border-slate-200 transition-colors">
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-xs font-bold text-slate-700">Opsional: URL Backend Proxy Kustom</label>
+            <span class="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded font-bold">Custom Host</span>
+          </div>
+          <p class="text-xs text-slate-500 mb-2.5">Kosongkan jika berjalan di Vercel (akan otomatis memakai origin host saat ini).</p>
+          <input type="text" id="customBackendUrl" placeholder="https://worksheetgenius-app.vercel.app" class="w-full text-xs font-mono p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 mt-4 pt-3 border-t border-slate-200">
+        <button type="button" onclick="saveSettings()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs py-2 px-4 rounded-lg shadow-sm transition">💾 Simpan Konfigurasi</button>
+        <button type="button" onclick="resetSettings()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-xs py-2 px-4 rounded-lg transition">Reset Default</button>
       </div>
     </div>
 
-    <!-- File Structure Tree -->
-    <div class="bg-slate-900 text-slate-200 rounded-xl p-4 font-mono text-xs mb-6 shadow-inner space-y-1">
-      <div class="text-indigo-400 font-bold mb-2 flex items-center gap-2">
-        <span>📁 worksheetgenius-app.zip</span>
+    <!-- Generator Configuration Card -->
+    <div class="glass-panel rounded-2xl p-6 sm:p-7 shadow-lg border border-slate-200/80 mb-8 no-print">
+      <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-200/70">
+        <div class="flex items-center gap-2">
+          <span class="p-2 rounded-xl bg-indigo-50 text-indigo-600 font-bold text-base">📋</span>
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-slate-800">Parameter Pembuatan Lembar Kerja</h2>
+            <p class="text-xs text-slate-500">Sesuaikan jenjang, topik kurikulum, dan tingkat kesulitan.</p>
+          </div>
+        </div>
+        <div class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold rounded-lg">
+          <span>✨</span> Auto-Format A4
+        </div>
       </div>
-      <div class="pl-4 text-emerald-400">├── 📄 index.html <span class="text-slate-400 font-sans text-[11px]">(Aplikasi utama + A4 PDF Generator)</span></div>
-      <div class="pl-4 text-sky-400">├── 📄 vercel.json <span class="text-slate-400 font-sans text-[11px]">(Konfigurasi cloud hosting)</span></div>
-      <div class="pl-4 text-amber-400">├── 📄 package.json <span class="text-slate-400 font-sans text-[11px]">(Dependensi desktop &amp; cloud)</span></div>
-      <div class="pl-4 text-slate-300">├── 📄 main.js <span class="text-slate-400 font-sans text-[11px]">(Electron desktop entry)</span></div>
-      <div class="pl-4 text-slate-300">├── 📄 build_exe.bat <span class="text-slate-400 font-sans text-[11px]">(1-Click Windows Compiler)</span></div>
-      <div class="pl-4 text-slate-300">├── 📄 build_mac.sh <span class="text-slate-400 font-sans text-[11px]">(1-Click macOS Compiler)</span></div>
-      <div class="pl-4 text-indigo-300">├── 📁 api/</div>
-      <div class="pl-8 text-sky-300">├── 📄 generate-worksheet.js <span class="text-slate-400 font-sans text-[11px]">(Vercel serverless text API)</span></div>
-      <div class="pl-8 text-sky-300">└── 📄 generate-image.js <span class="text-slate-400 font-sans text-[11px]">(Vercel serverless image API)</span></div>
-      <div class="pl-4 text-purple-300">├── 📄 panduan_deploy_cloud.md <span class="text-slate-400 font-sans text-[11px]">(Panduan deploy 3 menit)</span></div>
-      <div class="pl-4 text-purple-300">└── 📄 pedagogical_difficulty_matrix.md <span class="text-slate-400 font-sans text-[11px]">(Matriks kurikulum)</span></div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+        
+        <!-- 1. Jenjang Pendidikan -->
+        <div class="flex flex-col gap-1.5">
+          <label for="jenjang" class="text-xs font-bold text-slate-700 flex items-center gap-1">
+            <span>1. Jenjang Pendidikan</span>
+          </label>
+          <select id="jenjang" onchange="updateSubjects()" class="p-3 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm transition">
+            <option value="paud">PAUD (3-4 tahun)</option>
+            <option value="tk" selected>TK (4-6 tahun)</option>
+            <option value="sd">SD (Kelas 1 - 6)</option>
+            <option value="smp">SMP (Kelas 7 - 9)</option>
+            <option value="sma">SMA (Kelas 10 - 12)</option>
+          </select>
+        </div>
+
+        <!-- 2. Mata Pelajaran / Tema -->
+        <div class="flex flex-col gap-1.5">
+          <label for="subject" class="text-xs font-bold text-slate-700">2. Mata Pelajaran / Tema</label>
+          <select id="subject" class="p-3 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm transition"></select>
+        </div>
+
+        <!-- 3. Jumlah Worksheet -->
+        <div class="flex flex-col gap-1.5">
+          <label for="count" class="text-xs font-bold text-slate-700">3. Jumlah Worksheet</label>
+          <div class="relative">
+            <input type="number" id="count" value="1" min="1" max="10" class="w-full p-3 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm transition">
+            <span class="absolute right-3.5 top-3 text-xs font-bold text-slate-400">Lembar</span>
+          </div>
+        </div>
+
+        <!-- 4. Tingkat Kesulitan -->
+        <div class="flex flex-col gap-1.5">
+          <label for="difficulty" class="text-xs font-bold text-slate-700 flex items-center justify-between">
+            <span>4. Tingkat Kesulitan</span>
+            <span class="text-[10px] text-indigo-600 font-bold bg-indigo-50 px-1.5 py-0.5 rounded">Bloom Taxonomy</span>
+          </label>
+          <select id="difficulty" class="p-3 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm transition">
+            <option value="Acak" selected>🎲 Acak (Bervariasi Tiap Lembar)</option>
+            <option value="Mudah">Mudah (C1 - C2 / Ceria)</option>
+            <option value="Sedang">Sedang (C3 / Terstruktur)</option>
+            <option value="Sulit">Sulit / HOTS (C4 - C5)</option>
+          </select>
+        </div>
+
+        <!-- 5. Tema Visual Karakter -->
+        <div class="flex flex-col gap-1.5 sm:col-span-2 lg:col-span-2">
+          <label for="theme" class="text-xs font-bold text-slate-700">5. Tema Karakter PAUD & TK</label>
+          <select id="theme" class="p-3 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm transition">
+            <option value="Acak" selected>🎲 Acak (AI Bebas Memilih Otomatis)</option>
+            <option value="Putri Kerajaan Ceria">Putri Kerajaan Ceria</option>
+            <option value="Pahlawan Super Cilik">Pahlawan Super Cilik</option>
+            <option value="Astronot Cilik di Angkasa">Astronot Cilik di Angkasa</option>
+            <option value="Sahabat Putri Duyung">Sahabat Putri Duyung</option>
+            <option value="Kelinci Manis di Kebun">Kelinci Manis di Kebun</option>
+          </select>
+        </div>
+
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-3 border-t border-slate-200/70">
+        <button id="btnGenerate" onclick="generateWorksheetsAI()" class="flex-1 inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all text-sm transform hover:-translate-y-0.5 active:translate-y-0">
+          <span>✨</span>
+          <span>Buat Lembar Kerja Siswa</span>
+        </button>
+
+        <button id="btnDownload" onclick="downloadWorksheetsPDF()" class="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-emerald-200 hover:shadow-emerald-300 transition-all text-sm transform hover:-translate-y-0.5 active:translate-y-0">
+          <span>📥</span>
+          <span>Download PDF (A4)</span>
+        </button>
+      </div>
+
+      <!-- Status Indicator Box -->
+      <div id="statusContainer" class="mt-4 empty:hidden"></div>
     </div>
 
-    <!-- Download Trigger Card -->
-    <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-5 mb-6 text-center">
-      <button id="btnZip" onclick="generateAndDownloadZip()" class="w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold py-3.5 px-8 rounded-xl shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all text-base transform hover:-translate-y-0.5 opacity-75 cursor-not-allowed" disabled="">
-        <span class="text-xl">📥</span>
-        <span>Unduh worksheetgenius-app.zip Sekarang</span>
-      </button>
-      <div id="zipStatus" class="text-xs text-indigo-700 font-semibold mt-3 min-h-[1.25rem]">⏳ Sedang mengumpulkan file dan mengompres ke format .ZIP...</div>
-    </div>
+    <!-- Output Worksheet Container -->
+    <div id="output" class="flex flex-col gap-8 items-center"></div>
 
-    <div class="text-xs text-slate-500 leading-relaxed space-y-1.5 border-t border-slate-200 pt-4">
-      <div class="font-bold text-slate-700">💡 Setelah Mengunduh ZIP:</div>
-      <div>1. Ekstrak (unzip) file <strong>worksheetgenius-app.zip</strong> di komputer Anda.</div>
-      <div>2. Anda dapat langsung membuka <code>index.html</code>, menjalankan <code>build_exe.bat</code> untuk Windows, atau mengunggah folder hasil ekstrak ke GitHub &amp; Vercel mengikuti <code>panduan_deploy_cloud.md</code>.</div>
-    </div>
   </div>
 
   <script>
-    async function generateAndDownloadZip() {
-      const btn = document.getElementById('btnZip');
-      const status = document.getElementById('zipStatus');
-      btn.disabled = true;
-      btn.classList.add('opacity-75', 'cursor-not-allowed');
-      status.innerHTML = '⏳ Sedang mengumpulkan file dan mengompres ke format .ZIP...';
+    // Robust Logo Loader: Prioritizing Logo.png with intelligent fallbacks
+    function setupRobustLogo() {
+      const img = document.getElementById("mainBrandLogo");
+      const fav = document.getElementById("favIcon");
+      if (!img) return;
 
-      try {
-        const zip = new JSZip();
+      const candidates = [
+        "Logo.png",
+        "./Logo.png",
+        "worksheetgenius-app/Logo.png",
+        "https://raw.githubusercontent.com/abulkhaera/worksheetgenius-app/main/worksheetgenius-app/Logo.png",
+        "https://raw.githubusercontent.com/abulkhaera/worksheetgenius-app/main/Logo.png",
+        "Logo_2.png",
+        "./Logo_2.png"
+      ];
 
-        // 1. vercel.json
-        zip.file("vercel.json", JSON.stringify({
-          "version": 2,
-          "public": true,
-          "cleanUrls": true
-        }, null, 2));
+      let candidateIndex = 0;
 
-        // 2. package.json
-        zip.file("package.json", JSON.stringify({
-          "name": "worksheetgenius-id",
-          "version": "1.0.0",
-          "description": "Generator Lembar Kerja Peserta Didik (LKPD) A4 Kurikulum Merdeka",
-          "main": "main.js",
-          "author": "ibupunya.karya",
-          "license": "MIT",
-          "scripts": {
-            "start": "electron .",
-            "build:exe": "electron-builder --win portable",
-            "build:mac": "electron-builder --mac",
-            "build:all": "electron-builder -mw"
-          },
-          "build": {
-            "appId": "id.worksheetgenius.app",
-            "productName": "WorksheetGenius ID",
-            "directories": { "output": "dist" },
-            "win": { "target": "portable", "requestedExecutionLevel": "asInvoker" },
-            "mac": {
-              "category": "public.app-category.education",
-              "target": ["dmg", "zip", "dir"],
-              "hardenedRuntime": false,
-              "gatekeeperAssess": false
-            },
-            "files": ["main.js", "index.html", "package.json"]
-          },
-          "devDependencies": {
-            "electron": "^29.1.5",
-            "electron-builder": "^24.13.3"
+      function tryNextSource() {
+        candidateIndex++;
+        if (candidateIndex < candidates.length) {
+          img.src = candidates[candidateIndex];
+          if (fav) fav.href = candidates[candidateIndex];
+        } else {
+          // If all file paths fail, inject clean vector SVG inline
+          const wrapper = img.parentElement;
+          if (wrapper) {
+            wrapper.innerHTML = `
+              <svg viewBox="0 0 120 120" class="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="bulbGrad" x1="20" y1="20" x2="100" y2="110" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#f59e0b" />
+                    <stop offset="50%" stop-color="#06b6d4" />
+                    <stop offset="100%" stop-color="#0891b2" />
+                  </linearGradient>
+                </defs>
+                <rect x="18" y="44" width="38" height="48" rx="4" transform="rotate(-10 18 44)" stroke="#f59e0b" stroke-width="4.5" fill="#fff" />
+                <line x1="26" y1="52" x2="44" y2="48" stroke="#f59e0b" stroke-width="3" stroke-linecap="round" />
+                <line x1="28" y1="60" x2="48" y2="56" stroke="#f59e0b" stroke-width="3" stroke-linecap="round" />
+                <line x1="30" y1="68" x2="50" y2="64" stroke="#f59e0b" stroke-width="3" stroke-linecap="round" />
+                <polygon points="62,16 98,28 62,40 26,28" fill="url(#bulbGrad)" />
+                <rect x="42" y="37" width="40" height="9" rx="3" fill="#0891b2" />
+                <path d="M92 31 v16" stroke="#0891b2" stroke-width="3.5" stroke-linecap="round" />
+                <circle cx="92" cy="48" r="3" fill="#0891b2" />
+                <circle cx="68" cy="62" r="28" stroke="url(#bulbGrad)" stroke-width="5" fill="#ffffff" />
+                <path d="M57 85 h22 c0 4-4 8-11 8 s-11-4-11-8 z" fill="#0891b2" />
+                <line x1="59" y1="97" x2="77" y2="97" stroke="#0891b2" stroke-width="4" stroke-linecap="round" />
+                <line x1="102" y1="56" x2="114" y2="52" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" />
+                <line x1="98" y1="74" x2="110" y2="82" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" />
+                <line x1="38" y1="28" x2="28" y2="20" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" />
+              </svg>
+            `;
           }
-        }, null, 2));
-
-        // 3. main.js (Electron entry)
-        const mainJsContent = `const { app, BrowserWindow, shell } = require('electron');
-const path = require('path');
-
-function createWindow() {
-  const mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 860,
-    minWidth: 980,
-    minHeight: 700,
-    title: 'WorksheetGenius ID - Generator Lembar Kerja Siswa A4',
-    backgroundColor: '#f8fafc',
-    autoHideMenuBar: true,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      webSecurity: true,
-      sandbox: false
-    }
-  });
-
-  mainWindow.loadFile(path.join(__dirname, 'index.html'));
-
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith('https:') || url.startsWith('http:')) {
-      shell.openExternal(url);
-    }
-    return { action: 'deny' };
-  });
-
-  mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
-  });
-}
-
-app.whenReady().then(() => {
-  createWindow();
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  });
-});
-
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
-});
-`;
-        zip.file("main.js", mainJsContent);
-
-        // 4. build_exe.bat
-        const batContent = `@echo off
-title WorksheetGenius ID - Windows .EXE Compiler
-color 0B
-echo ========================================================
-echo   WorksheetGenius ID - Kompilasi Windows (.EXE)
-echo ========================================================
-echo.
-
-where node >nul 2>nul
-if %errorlevel% neq 0 (
-  color 0C
-  echo [ERROR] Node.js belum terinstall di komputer ini.
-  echo Silakan unduh dan install Node.js (LTS) dari https://nodejs.org
-  pause
-  exit /b
-)
-
-if not exist "index.html" (
-  color 0C
-  echo [ERROR] File 'index.html' tidak ditemukan di folder ini!
-  pause
-  exit /b
-)
-
-echo [1/3] Mengunduh modul Electron...
-call npm install
-if %errorlevel% neq 0 (
-  color 0C
-  echo [ERROR] Gagal menginstall dependensi npm.
-  pause
-  exit /b
-)
-
-echo.
-echo [2/3] Membangun file WorksheetGenius ID.exe portable...
-call npm run build:exe
-if %errorlevel% neq 0 (
-  color 0C
-  echo [ERROR] Gagal melakukan proses kompilasi .exe.
-  pause
-  exit /b
-)
-
-color 0A
-echo.
-echo ========================================================
-echo   SUKSES! File WorksheetGenius ID.exe berhasil dibuat!
-echo   Lokasi file: folder 'dist'
-echo ========================================================
-echo.
-if exist "dist" ( explorer dist )
-pause
-`;
-        zip.file("build_exe.bat", batContent);
-
-        // 5. build_mac.sh
-        const macContent = `#!/bin/bash
-echo ""
-echo "  WorksheetGenius ID - Kompilasi macOS (.app / .dmg)"
-echo ""
-
-if ! command -v node &> /dev/null; then
-  echo "❌ [ERROR] Node.js belum terpasang di Mac Anda."
-  echo "Silakan unduh dan pasang Node.js (LTS) dari https://nodejs.org"
-  exit 1
-fi
-
-if [ ! -f "index.html" ]; then
-  echo "❌ [ERROR] File 'index.html' tidak ditemukan di folder ini!"
-  exit 1
-fi
-
-echo "[1/3] Memeriksa dependensi Node.js..."
-npm install
-if [ $? -ne 0 ]; then
-  echo "❌ [ERROR] Gagal menginstall dependensi npm."
-  exit 1
-fi
-
-echo ""
-echo "[2/3] Membangun bundle aplikasi macOS (.app)..."
-npm run build:mac
-if [ $? -ne 0 ]; then
-  echo "❌ [ERROR] Proses build macOS gagal."
-  exit 1
-fi
-
-echo ""
-echo "  🎉 SUKSES! File WorksheetGenius ID.app berhasil dibuat!"
-echo "  Lokasi bundle .app dan installer .dmg: folder 'dist'"
-echo ""
-if [ -d "dist" ]; then open dist; fi
-`;
-        zip.file("build_mac.sh", macContent);
-
-        // 6. api/generate-worksheet.js
-        const apiFolder = zip.folder("api");
-        const apiWorksheetContent = `module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
-
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Metode request harus POST' });
-  }
-
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({
-      error: 'Variabel lingkungan GEMINI_API_KEY belum disetel di dashboard Vercel/Cloud!'
-    });
-  }
-
-  try {
-    const { systemPrompt } = req.body || {};
-    if (!systemPrompt) {
-      return res.status(400).json({ error: "Parameter 'systemPrompt' wajib disertakan." });
-    }
-
-    const apiUrl = \`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=\${apiKey}\`;
-    const payload = {
-      contents: [{ role: 'user', parts: [{ text: systemPrompt }] }],
-      generationConfig: {
-        responseMimeType: 'application/json',
-        temperature: 0.7
+        }
       }
+
+      img.onerror = tryNextSource;
+      img.src = candidates[0];
+      if (fav) fav.href = candidates[0];
+    }
+
+    function isCloudHosted() {
+      try {
+        const h = window.location.hostname;
+        return h.includes('vercel.app') || h.includes('render.com') || h.includes('pages.dev');
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function getBackendBaseUrl() {
+      const saved = localStorage.getItem('ws_backend_custom_url');
+      if (saved && saved.trim()) return saved.trim().replace(/\/+$/, '');
+      if (window.location && window.location.origin && window.location.origin !== 'null' && window.location.protocol.startsWith('http')) {
+        return window.location.origin;
+      }
+      return 'http://localhost:3000';
+    }
+
+    function getBackendEndpoint(path) {
+      const base = getBackendBaseUrl();
+      const cleanPath = path.startsWith('/') ? path : `/${path}`;
+      return `${base}${cleanPath}`;
+    }
+
+    function getSavedApiKey() {
+      return (localStorage.getItem('ws_gemini_direct_key') || '').trim();
+    }
+
+    function hasValidAIConnection() {
+      if (isCloudHosted()) return true;
+      if (getSavedApiKey().length > 10) return true;
+      const customBackend = localStorage.getItem('ws_backend_custom_url');
+      if (customBackend && customBackend.trim().length > 5) return true;
+      return false;
+    }
+
+    function toggleBackendSettings() {
+      const box = document.getElementById('backendSettingsBox');
+      const inputUrl = document.getElementById('customBackendUrl');
+      const inputKey = document.getElementById('customApiKey');
+      if (!box) return;
+      box.classList.toggle('hidden');
+      if (!box.classList.contains('hidden')) {
+        if (inputUrl) inputUrl.value = localStorage.getItem('ws_backend_custom_url') || '';
+        if (inputKey) inputKey.value = localStorage.getItem('ws_gemini_direct_key') || '';
+      }
+    }
+
+    function saveSettings() {
+      const inputUrl = document.getElementById('customBackendUrl');
+      const inputKey = document.getElementById('customApiKey');
+      if (inputUrl && inputUrl.value.trim()) {
+        localStorage.setItem('ws_backend_custom_url', inputUrl.value.trim());
+      } else {
+        localStorage.removeItem('ws_backend_custom_url');
+      }
+
+      if (inputKey && inputKey.value.trim()) {
+        localStorage.setItem('ws_gemini_direct_key', inputKey.value.trim());
+      } else {
+        localStorage.removeItem('ws_gemini_direct_key');
+      }
+
+      updateConnectionIndicator();
+      setStatus('success', '✅ Pengaturan koneksi berhasil disimpan!');
+      toggleBackendSettings();
+    }
+
+    function resetSettings() {
+      localStorage.removeItem('ws_backend_custom_url');
+      localStorage.removeItem('ws_gemini_direct_key');
+      const inputUrl = document.getElementById('customBackendUrl');
+      const inputKey = document.getElementById('customApiKey');
+      if (inputUrl) inputUrl.value = '';
+      if (inputKey) inputKey.value = '';
+      updateConnectionIndicator();
+      setStatus('success', '✅ Pengaturan telah direset ke default.');
+      toggleBackendSettings();
+    }
+
+    function updateConnectionIndicator() {
+      const ind = document.getElementById('connIndicator');
+      if (!ind) return;
+      if (hasValidAIConnection()) {
+        ind.className = 'w-2 h-2 rounded-full bg-emerald-400';
+      } else {
+        ind.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
+      }
+    }
+
+    const subjectMapping = {
+      paud: [
+        "Belajar Mewarnai",
+        "Cari Perbedaan",
+        "Ikuti Polanya (Bentuk & Karakter)",
+        "Tarik Garis & Pasangkan",
+        "Menghitung Ceria"
+      ],
+      tk: [
+        "Belajar Mewarnai",
+        "Cari Perbedaan",
+        "Ikuti Polanya (Bentuk & Karakter)",
+        "Tarik Garis & Pasangkan",
+        "Menghitung Ceria"
+      ],
+      sd: [
+        "Bahasa Indonesia",
+        "Matematika Dasar",
+        "Ilmu Pengetahuan Alam (IPA)",
+        "Ilmu Pengetahuan Sosial (IPS)",
+        "Pendidikan Pancasila (PPKn)"
+      ],
+      smp: [
+        "Bahasa Indonesia",
+        "Matematika",
+        "IPA Terpadu (Fisika & Biologi)",
+        "Bahasa Inggris",
+        "IPS Terpadu",
+        "Informatika"
+      ],
+      sma: [
+        "Bahasa Indonesia",
+        "Matematika Wajib",
+        "Fisika",
+        "Biologi",
+        "Kimia",
+        "Ekonomi",
+        "Sejarah Indonesia",
+        "Bahasa Inggris"
+      ]
     };
 
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    function updateSubjects() {
+      const levelSelect = document.getElementById("jenjang");
+      const subjectSelect = document.getElementById("subject");
+      if (!levelSelect || !subjectSelect) return;
 
-    if (!response.ok) {
-      const errText = await response.text();
-      return res.status(response.status).json({ error: \`Google API Error: \${errText}\` });
+      const level = levelSelect.value;
+      const list = subjectMapping[level] || [];
+      
+      subjectSelect.innerHTML = "";
+      const optRandom = document.createElement("option");
+      optRandom.value = "Acak";
+      optRandom.textContent = "🎲 Acak (Bervariasi Tiap Lembar)";
+      subjectSelect.appendChild(optRandom);
+
+      list.forEach((subj) => {
+        const opt = document.createElement("option");
+        opt.value = subj;
+        opt.textContent = subj;
+        subjectSelect.appendChild(opt);
+      });
     }
 
-    const data = await response.json();
-    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const cleanJson = rawText.trim().replace(/^\\\`\\\`\\\`json\\s*/i, '').replace(/^\\\`\\\`\\\`\\s*/i, '').replace(/\\\`\\\`\\\`$/i, '');
-    const parsed = JSON.parse(cleanJson);
-
-    return res.status(200).json({ success: true, data: parsed });
-  } catch (error) {
-    console.error('Error generate-worksheet:', error);
-    return res.status(500).json({ error: error.message || 'Gagal menyusun lembar kerja.' });
-  }
-};
-`;
-        apiFolder.file("generate-worksheet.js", apiWorksheetContent);
-
-        // 7. api/generate-image.js
-        const apiImageContent = `module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
-
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Metode request harus POST' });
-  }
-
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({
-      error: 'Variabel lingkungan GEMINI_API_KEY belum disetel di dashboard Vercel/Cloud!'
-    });
-  }
-
-  try {
-    const { prompt, aspectRatio = '3:4' } = req.body || {};
-    if (!prompt) {
-      return res.status(400).json({ error: "Parameter 'prompt' wajib disertakan." });
+    function setStatus(type, msg) {
+      const container = document.getElementById("statusContainer");
+      if (!container) return;
+      if (type === "loading") {
+        container.innerHTML = `
+          <div class="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl text-indigo-900 text-xs font-semibold flex items-center gap-3">
+            <div class="spinner" style="width:20px;height:20px;border-width:2.5px;"></div>
+            <span>${msg}</span>
+          </div>
+        `;
+      } else if (type === "error") {
+        container.innerHTML = `
+          <div class="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-900 text-xs font-medium leading-relaxed">
+            ${msg}
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 text-xs font-semibold">
+            ${msg}
+          </div>
+        `;
+      }
     }
 
-    const safePrompt = prompt
-      .replace(/\\bdisney princess\\b/gi, 'charming storybook royal fairytale princess')
-      .replace(/\\bdisney\\b/gi, 'whimsical storybook cartoon')
-      .replace(/\\bpixar superhero\\b/gi, 'cute 3D CGI animated superhero kid')
-      .replace(/\\bpixar\\b/gi, 'cute 3D CGI family animation style')
-      .trim();
+    function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
-    const imageModels = ['gemini-3.1-flash-image', 'gemini-3.1-flash-lite-image'];
-    let lastError = '';
+    async function downloadWorksheetsPDF() {
+      const output = document.getElementById("output");
+      if (!output || !output.children.length) {
+        setStatus("error", "⚠️ Belum ada worksheet untuk diunduh! Silakan klik tombol 'Buat Lembar Kerja Siswa' terlebih dahulu.");
+        return;
+      }
 
-    for (const model of imageModels) {
-      const apiUrl = \`https://generativelanguage.googleapis.com/v1beta/models/\${model}:generateContent?key=\${apiKey}\`;
+      const opt = {
+        margin: [8, 6, 8, 6],
+        filename: `WorksheetGenius_A4_${Date.now()}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] }
+      };
+
+      setStatus("loading", "⏳ Sedang merender dokumen PDF A4 beresolusi tinggi... Mohon tunggu sebentar.");
+      try {
+        await html2pdf().set(opt).from(output).save();
+        setStatus("success", "✅ Berhasil mendownload PDF A4 lengkap dengan lembar kunci jawaban terpisah!");
+      } catch (err) {
+        console.error("PDF generation failed:", err);
+        setStatus("error", `❌ Gagal membuat PDF: ${err.message}. Anda juga dapat menekan Ctrl+P (Print) lalu pilih Simpan sebagai PDF.`);
+      }
+    }
+
+    async function callBackendImage(promptText, aspectRatio = "3:4") {
+      const customBackend = localStorage.getItem('ws_backend_custom_url');
+      const isLocalOrigin = window.location.protocol.startsWith('http') && !window.location.host.includes('googleusercontent');
+
+      if (customBackend || isLocalOrigin || isCloudHosted()) {
+        const targetUrl = getBackendEndpoint('/api/generate-image');
+        try {
+          const response = await fetch(targetUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: promptText, aspectRatio: aspectRatio })
+          });
+
+          if (response.ok) {
+            const resData = await response.json();
+            if (resData.imageUrl) return resData.imageUrl;
+          }
+        } catch (err) {
+          console.debug("Backend proxy unreachable, checking direct fallback...", err);
+        }
+      }
+
+      const apiKey = getSavedApiKey();
+      const safePrompt = promptText
+        .replace(/\bdisney princess\b/gi, "charming storybook royal fairytale princess")
+        .replace(/\bdisney\b/gi, "whimsical storybook cartoon")
+        .replace(/\bpixar superhero\b/gi, "cute 3D CGI animated superhero kid")
+        .replace(/\bpixar\b/gi, "cute 3D CGI family animation style")
+        .trim();
+
+      const imageModels = ["gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"];
+      let lastError = "";
+
+      for (const model of imageModels) {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const payload = {
+          contents: [{ role: 'user', parts: [{ text: safePrompt }] }],
+          generationConfig: {
+            responseModalities: ['IMAGE'],
+            imageConfig: { aspectRatio: aspectRatio }
+          }
+        };
+
+        try {
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (!response.ok) {
+            const errBody = await response.text();
+            lastError = `[HTTP ${response.status}] ${errBody}`;
+            continue;
+          }
+
+          const result = await response.json();
+          const candidate = result?.candidates?.[0];
+          const part = candidate?.content?.parts?.find(p => p.inlineData);
+
+          if (part && part.inlineData?.data) {
+            return `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
+          }
+
+          const textReason = candidate?.content?.parts?.find(p => p.text)?.text;
+          lastError = textReason || candidate?.finishReason || "Gambar tidak dikembalikan oleh model AI.";
+        } catch (netErr) {
+          lastError = netErr.message;
+        }
+      }
+
+      throw new Error(lastError || "Tidak dapat memproses gambar AI. Pastikan GEMINI_API_KEY terpasang di Vercel atau form Koneksi AI.");
+    }
+
+    async function fetchBackendWorksheet(systemPrompt) {
+      const customBackend = localStorage.getItem('ws_backend_custom_url');
+      const isLocalOrigin = window.location.protocol.startsWith('http') && !window.location.host.includes('googleusercontent');
+
+      if (customBackend || isLocalOrigin || isCloudHosted()) {
+        const targetUrl = getBackendEndpoint('/api/generate-worksheet');
+        try {
+          const response = await fetch(targetUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ systemPrompt: systemPrompt })
+          });
+
+          if (response.ok) {
+            const resData = await response.json();
+            if (resData.data) return resData.data;
+          }
+        } catch (err) {
+          console.debug("Backend proxy unreachable, trying direct API...", err);
+        }
+      }
+
+      const apiKey = getSavedApiKey();
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
       const payload = {
-        contents: [{ role: 'user', parts: [{ text: safePrompt }] }],
+        contents: [{ role: "user", parts: [{ text: systemPrompt }] }],
         generationConfig: {
-          responseModalities: ['IMAGE'],
-          imageConfig: { aspectRatio: aspectRatio }
+          responseMimeType: "application/json",
+          temperature: 0.7
         }
       };
 
-      try {
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
-        if (!response.ok) {
-          const errBody = await response.text();
-          lastError = \`[HTTP \${response.status}] \${errBody}\`;
-          continue;
-        }
-
-        const result = await response.json();
-        const candidate = result?.candidates?.[0];
-        const part = candidate?.content?.parts?.find(p => p.inlineData);
-
-        if (part && part.inlineData?.data) {
-          const dataUrl = \`data:\${part.inlineData.mimeType || 'image/png'};base64,\${part.inlineData.data}\`;
-          return res.status(200).json({ success: true, imageUrl: dataUrl });
-        }
-
-        const textReason = candidate?.content?.parts?.find(p => p.text)?.text;
-        lastError = textReason || candidate?.finishReason || 'Gambar tidak dikembalikan oleh model AI.';
-      } catch (err) {
-        lastError = err.message;
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Google API Error: [HTTP ${response.status}] ${errText}`);
       }
+
+      const data = await response.json();
+      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      let clean = (rawText || "").trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/i, "");
+      return JSON.parse(clean);
     }
 
-    return res.status(500).json({ error: lastError || 'Gagal memproses gambar AI.' });
-  } catch (error) {
-    console.error('Error generate-image:', error);
-    return res.status(500).json({ error: error.message || 'Gagal memproses permintaan gambar.' });
-  }
-};
-`;
-        apiFolder.file("generate-image.js", apiImageContent);
+    function buildProductionSystemPrompt(level, subject, difficulty, index) {
+      const isLiteracyTextSubject = subject.toLowerCase().includes("literasi") || 
+                                    subject.toLowerCase().includes("bacaan") || 
+                                    (subject.toLowerCase().includes("inggris") && !subject.toLowerCase().includes("grammar"));
 
-        // 8. panduan_deploy_cloud.md
-        const docContent = `# PANDUAN DEPLOY CLOUD GRATIS (VERCEL) — WORKSHEETGENIUS ID
+      return `Role: Tim Ahli Asesmen Pembelajaran Kurikulum Merdeka Indonesia.
+Tugas: Buat Lembar Kerja Peserta Didik (LKPD) Lengkap.
+Jenjang: ${level.toUpperCase()}
+Mata Pelajaran: ${subject}
+Tingkat Kesulitan: ${difficulty}
+Lembar Ke: #${index}
 
-Dengan cara ini:
-1. Anda mendapatkan link web resmi seperti: **https://worksheetgenius.vercel.app**.
-2. **Tidak perlu memasukkan API Key sama sekali di browser.** Kunci disimpan aman di server Vercel (GEMINI_API_KEY).
-3. Shortcut desktop Anda cukup mengarah ke URL web ini. Aplikasi akan **100% selalu bekerja di setiap sesi**, kapan saja, di laptop, tablet, atau HP mana pun!
+ATURAN KONTEKS STIMULUS (readingPassage):
+- JIKA mata pelajaran adalah Matematika, Eksakta, Sains/IPA, Fisika, Kimia, Tata Bahasa, atau konsep langsung: JANGAN buat teks pengantar/esai panjang! Berikan nilai "readingPassage": null agar soal langsung tampil ringkas dan fokus.
+- HANYA sertakan teks "readingPassage" JIKA dan HANYA JIKA topik memerlukan stimulus pemahaman bacaan literasi (${isLiteracyTextSubject ? 'YA, sertakan teks 2-3 paragraf' : 'TIDAK, set null'}).
 
----
+SYARAT STRUKTURAL:
+1. Output WAJIB berupa JSON MURNI (tanpa markdown tambahan).
+2. Buat TEPAT 10 butir pertanyaan (nomor 1 sampai 10):
+   - Soal 1-8: Pilihan Ganda berkualitas dengan options ["A. ...", "B. ...", "C. ...", "D. ..."].
+   - Soal 9-10: Uraian / Isian bernalar dengan options kosong [].
+3. Sertakan kunci jawaban dan rubrik jelas untuk setiap nomor.
 
-## Langkah 1: Siapkan Folder Proyek di Komputer Anda
-Pastikan struktur folder Anda seperti ini:
-\`\`\`text
-worksheetgenius/
-├── index.html
-├── vercel.json
-├── package.json
-└── api/
-    ├── generate-worksheet.js
-    └── generate-image.js
-\`\`\`
+Format Output JSON:
+{
+  "title": "Judul Lembar Kerja Edukatif",
+  "objective": "Tujuan Pembelajaran Kurikulum Merdeka",
+  "instructions": "Petunjuk pengerjaan bagi peserta didik",
+  "readingPassage": ${isLiteracyTextSubject ? '"Teks bacaan narasi pendek..."' : 'null'},
+  "questions": [
+    { "id": 1, "prompt": "Soal nomor 1...", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "answer": "A" },
+    { "id": 10, "prompt": "Soal uraian nomor 10...", "options": [], "answer": "Rubrik penilaian..." }
+  ]
+}`;
+    }
 
----
+    const toddlerColoringThemes = [
+      {
+        name: "Putri Kerajaan Ceria",
+        easy: "only ONE cute smiling little fairytale princess standing cheerfully and waving. Big open areas to color, clean solid white background",
+        medium: "cute smiling little fairytale princess holding a star wand beside a single tulip flower, clean solid white background",
+        hard: "cute smiling little fairytale princess standing in a cartoon palace hall with simple arched pillars and stars to color, clean bold line art"
+      },
+      {
+        name: "Pahlawan Super Cilik",
+        easy: "only ONE cute smiling toddler superhero kid wearing a simple cape and mask with hands on hips. Big open spaces, solid white background",
+        medium: "cute smiling toddler superhero kid in cape next to one cute smiling cartoon star, clean solid white background",
+        hard: "cute smiling toddler superhero kid standing on a cartoon rooftop with two simple skyscraper silhouettes to color, clean bold outlines"
+      },
+      {
+        name: "Astronot Cilik di Angkasa",
+        easy: "only ONE cute chubby toddler astronaut in a simple smooth bubble helmet and puffy spacesuit waving cheerfully. Pure white background, zero mechanical clutter",
+        medium: "cute chubby toddler astronaut waving next to one smiling crescent moon, clean shapes, pure white background",
+        hard: "cute chubby toddler astronaut floating joyfully with two cartoon stars and one ringed planet to color, clean bold line art"
+      },
+      {
+        name: "Sahabat Putri Duyung",
+        easy: "only ONE cute smiling little cartoon mermaid swimming cheerfully and waving. Big open spaces, solid white background",
+        medium: "cute smiling little cartoon mermaid girl sitting on a smooth rock next to one friendly starfish, clean white background",
+        hard: "cute smiling little cartoon mermaid girl swimming next to one friendly dolphin with simple coral plants to color, clean bold lines"
+      },
+      {
+        name: "Kelinci Manis di Kebun",
+        easy: "only ONE adorable chubby baby bunny sitting happily and holding one giant smooth carrot. Clean solid white background",
+        medium: "adorable chubby baby bunny sitting next to a simple watering can and one giant sunflower, clean white background",
+        hard: "adorable chubby baby bunny in a simple garden with a cute fence, two carrots, and puffy clouds to color, clean bold outlines"
+      }
+    ];
 
-## Langkah 2: Unggah ke GitHub (1 Menit)
-1. Buka https://github.com dan buat repositori baru (misal: worksheetgenius-app).
-2. Unggah file-file di atas ke repositori GitHub tersebut.
+    const spotDiffAiThemes = [
+      {
+        title: "Toko Roti Beruang Koki",
+        subjectPrompt: "cheerful baby bear wearing chef hat behind a warm cozy cartoon bakery counter with cupcakes and clock",
+        diffDefs: [
+          "[Warna] Topi koki beruang: Putih di Gambar A berganti menjadi merah di Gambar B",
+          "[Bentuk] Hiasan kue: Ceri bulat di Gambar A berganti menjadi bintang di Gambar B",
+          "[Posisi] Sendok kayu: Dipegang tangan di Gambar A berganti diletakkan di atas meja di Gambar B",
+          "[Warna] Celemek beruang: Biru muda di Gambar A berganti menjadi kuning cerah di Gambar B",
+          "[Bentuk] Saku celemek: Kotak di Gambar A berganti menjadi saku bentuk hati di Gambar B"
+        ]
+      },
+      {
+        title: "Kelinci Manis di Kebun Ceria",
+        subjectPrompt: "adorable baby bunny in gardener apron holding a giant carrot, with butterfly and colorful flowers",
+        diffDefs: [
+          "[Warna] Kupu-kupu: Sayap biru di Gambar A berganti menjadi kuning di Gambar B",
+          "[Bentuk] Pita di telinga: Pita kupu-kupu di Gambar A berganti jadi bintang di Gambar B",
+          "[Posisi] Wortel di tanah: Sebelah kiri di Gambar A berpindah ke sebelah kanan di Gambar B",
+          "[Warna] Bunga di tanah: Merah muda di Gambar A berganti menjadi ungu di Gambar B",
+          "[Bentuk] Daun wortel: 3 helai di Gambar A berganti menjadi 2 helai melengkung di Gambar B"
+        ]
+      },
+      {
+        title: "Astronot Cilik di Bulan",
+        subjectPrompt: "cute toddler astronaut in spacesuit on colorful moon surface next to a smiling star and ringed planet",
+        diffDefs: [
+          "[Warna] Bendera di bulan: Merah di Gambar A berganti menjadi hijau cerah di Gambar B",
+          "[Bentuk] Antena helm: Bulat di Gambar A berganti menjadi bentuk bintang di Gambar B",
+          "[Posisi] Bintang ceria: Di kiri atas di Gambar A berpindah ke kanan di Gambar B",
+          "[Warna] Garis baju astronot: Biru di Gambar A berganti menjadi oranye di Gambar B",
+          "[Bentuk] Lambang dada: Bentuk petir di Gambar A berganti menjadi hati di Gambar B"
+        ]
+      }
+    ];
 
----
+    const creativeIconCategories = [
+      {
+        category: "Kue & Manisan Toko Roti",
+        items: ["🍩 Donat Cokelat", "🧁 Cupcake Stroberi", "🍪 Kukis Ceria", "🍰 Irisan Kue Tart", "🍭 Permen Lolipop", "🍦 Es Krim Pelangi"]
+      },
+      {
+        category: "Hewan Rimba Lucu",
+        items: ["🦁 Singa Ramah", "🐼 Panda Gemas", "🦊 Rubah Cerdik", "🐨 Koala Manis", "🐯 Harimau Cilik", "🐵 Monyet Ceria"]
+      },
+      {
+        category: "Dunia Laut Penuh Warna",
+        items: ["🐳 Paus Biru", "🐙 Gurita Ungu", "🦀 Kepiting Riang", "🐢 Penyu Laut", "🐠 Ikan Tropis", "⭐ Bintang Laut"]
+      },
+      {
+        category: "Ekspedisi Luar Angkasa",
+        items: ["🚀 Roket Cepat", "🪐 Planet Saturnus", "🛸 Piring Terbang", "⭐ Bintang Berkilau", "🌙 Bulan Sabit", "☄️ Komet Meluncur"]
+      },
+      {
+        category: "Dunia Dinosaurus & Alam",
+        items: ["🦖 T-Rex Lucu", "🦕 Bronto Leher Panjang", "🥚 Telur Dino", "🌴 Pohon Palem", "🌋 Gunung Bersahabat", "🌿 Daun Purba"]
+      },
+      {
+        category: "Kendaraan & Transportasi",
+        items: ["🚗 Mobil Balap", "✈️ Pesawat Terbang", "🚂 Kereta Api", "⛵ Perahu Layar", "🚁 Helikopter", "🚲 Sepeda Ceria"]
+      }
+    ];
 
-## Langkah 3: Deploy Gratis di Vercel (1 Menit)
-1. Buka https://vercel.com lalu Log In dengan akun GitHub Anda.
-2. Klik tombol "Add New..." -> "Project".
-3. Pilih repositori worksheetgenius-app yang baru dibuat -> klik "Import".
-4. Buka bagian Environment Variables:
-   - Key: GEMINI_API_KEY
-   - Value: Masukkan API Key Google Anda (AIzaSy...)
-   - Klik "Add".
-5. Klik tombol biru "Deploy".
+    function getDifficultyBadgeClass(diff) {
+      if (diff.includes("Mudah")) return "diff-mudah";
+      if (diff.includes("Sulit") || diff.includes("HOTS")) return "diff-sulit";
+      return "diff-sedang";
+    }
 
----
+    function createDedicatedAnswerKeyPage(title, subtitle, contentList, badge = "KUNCI JAWABAN & PANDUAN PENDIDIK", difficulty = "Sedang") {
+      const page = document.createElement("div");
+      page.className = "ws-page ws-answer-page";
 
-## Selesai! 🎉
-Dalam waktu kurang dari 30 detik, Anda akan mendapatkan URL web publik resmi.
-`;
-        zip.file("panduan_deploy_cloud.md", docContent);
+      let itemsHTML = contentList.map((item, idx) => `
+        <div class="answer-key-item">
+          <div class="answer-key-num">${idx + 1}</div>
+          <div style="flex:1;">${item}</div>
+        </div>
+      `).join("");
 
-        // 9. index.html - Fetching current application content
-        let indexHtmlContent = "";
-        try {
-          const resp = await fetch("index.html");
-          if (resp.ok) {
-            indexHtmlContent = await resp.text();
+      page.innerHTML = `
+        <div style="text-align: center; border-bottom: 2px dashed #a78bfa; padding-bottom: 14px; margin-bottom: 16px;">
+          <div class="diff-pill ${getDifficultyBadgeClass(difficulty)}">
+            <span>🎯</span> TINGKAT KESULITAN: ${difficulty.toUpperCase()}
+          </div>
+          <div><span class="answer-key-badge">🔑 ${badge}</span></div>
+          <h2 style="font-size: 1.55rem; color: #5b21b6; margin: 6px 0 2px 0;">${title}</h2>
+          <p style="font-size: 0.95rem; color: #6b7280; font-weight: 600;">${subtitle}</p>
+        </div>
+
+        <div class="answer-key-card">
+          <div style="font-weight: 800; color: #4c1d95; margin-bottom: 8px; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+            <span>📋</span> Rincian Jawaban Benar & Pembahasan:
+          </div>
+          ${itemsHTML}
+        </div>
+
+        <div style="margin-top: 24px; padding: 14px 18px; background: #ede9fe; border-radius: 12px; font-size: 0.92rem; color: #4c1d95; line-height: 1.6;">
+          <strong>💡 Panduan Guru / Orang Tua:</strong> Lembar ini khusus untuk pendidik dalam mencocokkan hasil kerja anak. Berikan apresiasi berupa stiker bintang atau senyuman atas setiap usaha pengerjaan mandiri siswa!
+        </div>
+
+        <div class="tk-footer" style="margin-top: 30px;">✨ WorksheetGenius ID • Kurikulum Merdeka AI ✨</div>
+      `;
+
+      return page;
+    }
+
+    async function renderPaudTkLiveAI(activityType, selectedTheme, index, assignedThemeObj, difficulty) {
+      const page = document.createElement("div");
+      page.className = "ws-page ws-paud-tk";
+      let answerPage = null;
+
+      if (activityType === "mewarnai") {
+        const chosenTheme = assignedThemeObj || toddlerColoringThemes[(index - 1) % toddlerColoringThemes.length];
+        const themeTitle = chosenTheme.name;
+
+        let promptDesc = chosenTheme.medium;
+        let diffInstruction = "Warnai karakter dan hiasannya dengan rapi!";
+        if (difficulty === "Mudah") {
+          promptDesc = chosenTheme.easy;
+          diffInstruction = "Bidang luas untuk krayon! Warnai karakternya dengan ceria!";
+        } else if (difficulty === "Sulit") {
+          promptDesc = chosenTheme.hard;
+          diffInstruction = "Tantangan Mewarnai Lengkap! Warnai karakter beserta seluruh latar belakangnya!";
+        }
+
+        const coloringPrompt = `Clean vector-style coloring book page for young children.
+Subject: ${promptDesc}.
+Art Style: Thick bold clean black outlines, large enclosed clear areas to color, completely pure white background.
+Negative prompt: mechanical clutter, hoses, wires, micro-buttons, realistic shading, cross-hatching, grayscale, gradient. Aspect ratio: 3:4.`;
+
+        page.innerHTML = `
+          <div class="tk-banner-wrap">
+            <div class="diff-pill ${getDifficultyBadgeClass(difficulty)}">
+              <span>🎯</span> TINGKAT KESULITAN: ${difficulty.toUpperCase()}
+            </div>
+            <div class="tk-banner">
+              <h2>BELAJAR MEWARNAI</h2>
+            </div>
+          </div>
+
+          <div class="tk-student-info">
+            <span>Nama: _______________________________</span>
+            <span>Usia/Kelas: _________________</span>
+          </div>
+
+          <div class="tk-instruction-pill">
+            <span>🖍️</span> TEMA: ${themeTitle.toUpperCase()}! ${diffInstruction}
+          </div>
+
+          <div class="ai-image-frame ai-coloring-frame" id="coloringFrame_${index}">
+            <div class="ai-loading-box" id="loading_${index}">
+              <div class="spinner"></div>
+              <span>Sedang melukis gambar mewarnai ${themeTitle} (${difficulty})...</span>
+            </div>
+            <img id="coloringImg_${index}" class="ai-generated-img" alt="Coloring Page" style="display:none;">
+          </div>
+
+          <div class="tk-footer">✨ WorksheetGenius ID • Kurikulum Merdeka AI ✨</div>
+        `;
+
+        setTimeout(async () => {
+          const img = page.querySelector(`#coloringImg_${index}`);
+          const loader = page.querySelector(`#loading_${index}`);
+          try {
+            const dataUrl = await callBackendImage(coloringPrompt, "3:4");
+            if (img && loader) {
+              img.src = dataUrl;
+              loader.style.display = "none";
+              img.style.display = "block";
+            }
+          } catch (err) {
+            if (loader) {
+              loader.innerHTML = `
+                <div style="color:#b91c1c; padding:20px; font-size:0.92rem; line-height:1.5;">
+                  <strong>❌ Info Gambar AI:</strong><br>
+                  <code style="font-size:0.82rem; background:#fee2e2; padding:6px 10px; border-radius:6px; display:inline-block; margin-top:8px;">${err.message}</code>
+                </div>
+              `;
+            }
           }
-        } catch (e) {
-          console.warn("Could not fetch index.html relative, fallback to packaged template", e);
-        }
+        }, 50);
 
-        if (!indexHtmlContent) {
-          indexHtmlContent = document.documentElement.outerHTML;
-        }
-        zip.file("index.html", indexHtmlContent);
+        answerPage = createDedicatedAnswerKeyPage(
+          `Rubrik Penilaian: Belajar Mewarnai (${themeTitle})`,
+          `Lembar #${index} • Panduan Observasi Perkembangan Motorik Halus`,
+          [
+            `<strong>Kerapian Garis (Motorik Halus):</strong> Apakah anak mewarnai di dalam bidang garis luar tanpa keluar berlebihan? (Skor 1-4)`,
+            `<strong>Eksplorasi Warna (Kreativitas):</strong> Keberanian anak memadukan krayon pada karakter dan hiasannya.`,
+            `<strong>Daya Tahan & Fokus:</strong> Ketekunan menyelesaikan gambar hingga tuntas secara mandiri.`
+          ],
+          "PANDUAN OBSERVASI GURU / ORANG TUA",
+          difficulty
+        );
 
-        // Generate ZIP file as Blob and trigger download
-        const zipBlob = await zip.generateAsync({ type: "blob" }, function updateCallback(metadata) {
-          status.innerHTML = `⏳ Mengompres file: <strong>${metadata.percent.toFixed(0)}%</strong>`;
+        return { studentPage: page, answerPage: answerPage };
+      }
+      else if (activityType === "perbedaan") {
+        let diffCount = difficulty === "Mudah" ? 3 : (difficulty === "Sulit" ? 6 : 4);
+        const sceneObj = spotDiffAiThemes[(index - 1) % spotDiffAiThemes.length];
+        const sceneTitle = sceneObj.title;
+        const activeDiffs = sceneObj.diffDefs.slice(0, diffCount);
+
+        const spotDiffPrompt = `Charming 3D cartoon "Spot the Difference" activity for kids.
+Side-by-side dual panels: Panel A on the left and Panel B on the right with a clean vertical line.
+Subject: Vibrant colorful 3D animated scene of ${sceneObj.subjectPrompt}.
+Panel B features exactly ${diffCount} differences in color, shape, and position. Aspect ratio: 4:3.`;
+
+        page.innerHTML = `
+          <div class="tk-banner-wrap">
+            <div class="diff-pill ${getDifficultyBadgeClass(difficulty)}">
+              <span>🎯</span> TINGKAT KESULITAN: ${difficulty.toUpperCase()}
+            </div>
+            <div class="tk-banner">
+              <h2>CARI PERBEDAAN</h2>
+            </div>
+          </div>
+
+          <div class="tk-student-info">
+            <span>Nama: _______________________________</span>
+            <span>Usia/Kelas: _________________</span>
+          </div>
+
+          <div class="tk-instruction-pill">
+            <span>🎯</span> TEMA: ${sceneTitle.toUpperCase()}! Temukan ${diffCount} perbedaan di Gambar B!
+          </div>
+
+          <div class="ai-image-frame ai-diff-frame" id="diffFrame_${index}">
+            <div class="ai-loading-box" id="diffLoading_${index}">
+              <div class="spinner"></div>
+              <span>Sedang melukis panel gambar cari perbedaan...</span>
+            </div>
+            <img id="diffImg_${index}" class="ai-generated-img" alt="Spot The Difference" style="display:none;">
+          </div>
+
+          <div style="text-align: center; color: #475569; font-size: 0.95rem; margin-top: 8px; font-weight: 600;">
+            ✏️ Lingkarilah dengan pensil setiap benda yang berbeda pada Gambar B!
+          </div>
+
+          <div class="tk-footer">✨ WorksheetGenius ID • Kurikulum Merdeka AI ✨</div>
+        `;
+
+        setTimeout(async () => {
+          const img = page.querySelector(`#diffImg_${index}`);
+          const loader = page.querySelector(`#diffLoading_${index}`);
+          try {
+            const dataUrl = await callBackendImage(spotDiffPrompt, "4:3");
+            if (img && loader) {
+              img.src = dataUrl;
+              loader.style.display = "none";
+              img.style.display = "block";
+            }
+          } catch (err) {
+            if (loader) {
+              loader.innerHTML = `
+                <div style="color:#b91c1c; padding:20px; font-size:0.92rem; line-height:1.5;">
+                  <strong>❌ Info Gambar AI:</strong><br>
+                  <code style="font-size:0.82rem; background:#fee2e2; padding:6px 10px; border-radius:6px; display:inline-block; margin-top:8px;">${err.message}</code>
+                </div>
+              `;
+            }
+          }
+        }, 50);
+
+        answerPage = createDedicatedAnswerKeyPage(
+          `Kunci Jawaban: Cari Perbedaan (${sceneTitle})`,
+          `Lembar #${index} • Tepat ${diffCount} Perbedaan`,
+          activeDiffs.map(d => `<strong>${d}</strong>`),
+          "KUNCI JAWABAN GURU",
+          difficulty
+        );
+
+        return { studentPage: page, answerPage: answerPage };
+      }
+      else if (activityType === "pola") {
+        const catIdx = (index - 1) % creativeIconCategories.length;
+        const currentCategory = creativeIconCategories[catIdx];
+        const categoryName = currentCategory.category;
+        const items = [...currentCategory.items].sort(() => 0.5 - Math.random());
+
+        const patternConfigs = [
+          { a: items[0].split(" ")[0], b: items[1].split(" ")[0], desc: `${items[0]} dan ${items[1]}` },
+          { a: items[2].split(" ")[0], b: items[3].split(" ")[0], desc: `${items[2]} dan ${items[3]}` },
+          { a: items[4].split(" ")[0], b: items[5].split(" ")[0], desc: `${items[4]} dan ${items[5]}` },
+          { a: items[1].split(" ")[0], b: items[4].split(" ")[0], desc: `${items[1]} dan ${items[4]}` }
+        ];
+
+        let patternHTML = "";
+        let answersLog = [];
+
+        patternConfigs.forEach((cfg, pIdx) => {
+          const seq = [cfg.a, cfg.b, cfg.a, cfg.b];
+          const correctAnswer = cfg.a;
+          const distractors = [cfg.a, cfg.b, items[3].split(" ")[0]];
+          const shuffledOpts = [...new Set(distractors)].sort(() => 0.5 - Math.random());
+
+          answersLog.push(`Baris #${pIdx + 1}: Simbol yang benar untuk tanda tanya adalah <strong>${correctAnswer}</strong> (${cfg.desc})`);
+
+          patternHTML += `
+            <div class="pattern-row">
+              <div class="pattern-num">${pIdx + 1}</div>
+              <div class="pattern-sequence">
+                <span>${seq[0]}</span> <span>${seq[1]}</span> <span>${seq[2]}</span> <span>${seq[3]}</span>
+                <div class="pattern-q-box">?</div>
+              </div>
+              <div class="pattern-options-divider"></div>
+              <div class="pattern-options-group">
+                ${shuffledOpts.map(opt => `<div class="pattern-opt-box">${opt}</div>`).join("")}
+              </div>
+            </div>
+          `;
         });
 
-        saveAs(zipBlob, "worksheetgenius-app.zip");
-        status.innerHTML = '✅ <strong>Sukses!</strong> File <code>worksheetgenius-app.zip</code> berhasil diunduh ke folder Downloads komputer Anda.';
-      } catch (err) {
-        console.error("ZIP Generation error:", err);
-        status.innerHTML = `<span class="text-rose-600">❌ Gagal membuat ZIP: ${err.message}</span>`;
-      } finally {
-        btn.disabled = false;
-        btn.classList.remove('opacity-75', 'cursor-not-allowed');
+        page.innerHTML = `
+          <div class="tk-banner-wrap">
+            <div class="diff-pill ${getDifficultyBadgeClass(difficulty)}">
+              <span>🎯</span> TINGKAT KESULITAN: ${difficulty.toUpperCase()}
+            </div>
+            <div class="tk-banner">
+              <h2>IKUTI POLANYA</h2>
+            </div>
+          </div>
+          <div class="tk-student-info">
+            <span>Nama: _______________________________</span>
+            <span>Usia/Kelas: _________________</span>
+          </div>
+          <div class="tk-instruction-pill">
+            <span>👀</span> TEMA: ${categoryName.toUpperCase()}! Perhatikan polanya lalu lingkari gambar yang tepat di sebelah kanan!
+          </div>
+          ${patternHTML}
+          <div class="tk-footer">✨ WorksheetGenius ID • Kurikulum Merdeka AI ✨</div>
+        `;
+
+        answerPage = createDedicatedAnswerKeyPage(
+          `Kunci Jawaban: Ikuti Polanya (${categoryName})`,
+          `Lembar #${index} • Pola Karakter Ceria`,
+          answersLog,
+          "KUNCI JAWABAN GURU",
+          difficulty
+        );
+
+        return { studentPage: page, answerPage: answerPage };
+      }
+      else if (activityType === "tarikGaris") {
+        const matchingThemesPool = [
+          {
+            themeTitle: "Hewan Sahabat & Makanan Favoritnya",
+            pairs: [
+              { left: "🐰 Kelinci Lucu", right: "🥕 Wortel Segar" },
+              { left: "🐱 Kucing Manis", right: "🐟 Ikan Lezat" },
+              { left: "🐮 Sapi Gemuk", right: "🌿 Rumput Segar" },
+              { left: "🐵 Monyet Ceria", right: "🍌 Pisang Manis" }
+            ]
+          },
+          {
+            themeTitle: "Profesi Hebat & Peralatan Kerjanya",
+            pairs: [
+              { left: "👨‍🍳 Koki Restoran", right: "🍳 Wajan & Spatula" },
+              { left: "👩‍⚕️ Dokter Ramah", right: "🩺 Stetoskop Medis" },
+              { left: "🎨 Pelukis Cilik", right: "🖌️ Kuas & Palet Cat" },
+              { left: "👨‍🚒 Pemadam Kebakaran", right: "🚒 Selang Pemadam" }
+            ]
+          }
+        ];
+
+        const selectedPool = matchingThemesPool[(index - 1) % matchingThemesPool.length];
+        const selectedPairs = selectedPool.pairs;
+        const shuffledRight = [...selectedPairs].sort(() => 0.5 - Math.random());
+
+        page.innerHTML = `
+          <div class="tk-banner-wrap">
+            <div class="diff-pill ${getDifficultyBadgeClass(difficulty)}">
+              <span>🎯</span> TINGKAT KESULITAN: ${difficulty.toUpperCase()}
+            </div>
+            <div class="tk-banner">
+              <h2>TARIK GARIS PASANGAN</h2>
+            </div>
+          </div>
+          <div class="tk-student-info">
+            <span>Nama: _______________________________</span>
+            <span>Usia/Kelas: _________________</span>
+          </div>
+          <div class="tk-instruction-pill">
+            <span>✏️</span> TEMA: ${selectedPool.themeTitle.toUpperCase()}! Tarik garis dari sisi kiri ke pasangan yang sesuai di sisi kanan!
+          </div>
+          <div class="match-table">
+            <div class="match-col">
+              ${selectedPairs.map(p => `
+                <div class="match-card">
+                  <span>${p.left}</span>
+                  <div class="match-dot"></div>
+                </div>
+              `).join("")}
+            </div>
+            <div class="match-col">
+              ${shuffledRight.map(p => `
+                <div class="match-card">
+                  <div class="match-dot"></div>
+                  <span>${p.right}</span>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+          <div class="tk-footer">✨ WorksheetGenius ID • Kurikulum Merdeka AI ✨</div>
+        `;
+
+        answerPage = createDedicatedAnswerKeyPage(
+          `Kunci Jawaban: Tarik Garis (${selectedPool.themeTitle})`,
+          `Lembar #${index} • Pasangan Tepat`,
+          selectedPairs.map(p => `Pasangan: <strong>${p.left}</strong> berpasangan dengan <strong>${p.right}</strong>`),
+          "KUNCI JAWABAN GURU",
+          difficulty
+        );
+
+        return { studentPage: page, answerPage: answerPage };
+      }
+      else {
+        const catIdx = (index - 1) % creativeIconCategories.length;
+        const currentCategory = creativeIconCategories[catIdx];
+        const poolItems = currentCategory.items;
+
+        const countItems = [
+          { name: poolItems[0], icon: poolItems[0].split(" ")[0], count: 3 },
+          { name: poolItems[1], icon: poolItems[1].split(" ")[0], count: 5 },
+          { name: poolItems[2], icon: poolItems[2].split(" ")[0], count: 2 },
+          { name: poolItems[3], icon: poolItems[3].split(" ")[0], count: 4 }
+        ];
+
+        let rowsHTML = "";
+        let answersLog = [];
+
+        countItems.forEach((c, idx) => {
+          let icons = Array(c.count).fill(c.icon).join(" ");
+          answersLog.push(`Baris #${idx + 1}: Jumlah objek <strong>${c.name}</strong> = <strong>${c.count}</strong> buah`);
+
+          rowsHTML += `
+            <div class="pattern-row" style="padding: 16px 20px;">
+              <div class="pattern-num">${idx + 1}</div>
+              <div style="font-size: 2.3rem; flex: 1; letter-spacing: 4px;">${icons}</div>
+              <div style="display:flex; align-items:center; gap:14px;">
+                <span style="font-size: 1.15rem; font-weight:700; color:#0284c7;">Ada berapa?</span>
+                <div class="pattern-q-box" style="border-style: solid; border-color:#0284c7; background:#fff; font-size:1.6rem;"></div>
+              </div>
+            </div>
+          `;
+        });
+
+        page.innerHTML = `
+          <div class="tk-banner-wrap">
+            <div class="diff-pill ${getDifficultyBadgeClass(difficulty)}">
+              <span>🎯</span> TINGKAT KESULITAN: ${difficulty.toUpperCase()}
+            </div>
+            <div class="tk-banner">
+              <h2>MENGHITUNG CERIA</h2>
+            </div>
+          </div>
+          <div class="tk-student-info">
+            <span>Nama: _______________________________</span>
+            <span>Usia/Kelas: _________________</span>
+          </div>
+          <div class="tk-instruction-pill">
+            <span>🧮</span> TEMA: ${currentCategory.category.toUpperCase()}! Hitung jumlah setiap gambar lalu tulis angkanya di dalam kotak!
+          </div>
+          ${rowsHTML}
+          <div class="tk-footer">✨ WorksheetGenius ID • Kurikulum Merdeka AI ✨</div>
+        `;
+
+        answerPage = createDedicatedAnswerKeyPage(
+          `Kunci Jawaban: Menghitung Ceria (${currentCategory.category})`,
+          `Lembar #${index} • Kunci Hitungan`,
+          answersLog,
+          "KUNCI JAWABAN GURU",
+          difficulty
+        );
+
+        return { studentPage: page, answerPage: answerPage };
       }
     }
-  </script>
 
-</body></html>
+    function renderWorksheet(level, data, subject, index, difficulty) {
+      const page = document.createElement("div");
+      const isSD = level === "sd";
+      page.className = `ws-page ${isSD ? 'ws-sd' : 'ws-smp-sma'}`;
+
+      let readingBoxHTML = "";
+      if (data.readingPassage && data.readingPassage.trim().length > 20) {
+        readingBoxHTML = `
+          <div class="reading-passage-box">
+            <div class="reading-passage-header">
+              <span>📖</span> Teks Bacaan / Narasi Literasi
+            </div>
+            <div class="reading-passage-text">${data.readingPassage}</div>
+          </div>
+        `;
+      }
+
+      let questionsHTML = "";
+      let answerList = [];
+
+      (data.questions || []).forEach((q) => {
+        let optionsHTML = "";
+        if (q.options && q.options.length > 0) {
+          optionsHTML = `
+            <div class="q-options">
+              ${q.options.map(opt => `<div>${opt}</div>`).join('')}
+            </div>
+          `;
+        } else {
+          optionsHTML = `
+            <div style="border-bottom: 1.5px dashed #94a3b8; height: 32px; margin-top: 8px; width: 100%;"></div>
+            <div style="border-bottom: 1.5px dashed #94a3b8; height: 32px; margin-top: 6px; width: 100%;"></div>
+          `;
+        }
+
+        questionsHTML += `
+          <div class="q-item">
+            <strong>${q.id}.</strong> ${q.prompt}
+            ${optionsHTML}
+          </div>
+        `;
+
+        answerList.push(`<strong>Nomor ${q.id}:</strong> ${q.answer || 'Pedoman rubrik penilaian guru.'}`);
+      });
+
+      page.innerHTML = `
+        <div class="ws-header">
+          <div>
+            <div class="diff-pill ${getDifficultyBadgeClass(difficulty)}">
+              <span>🎯</span> TINGKAT KESULITAN: ${difficulty.toUpperCase()}
+            </div>
+            <div class="ws-title">${data.title || subject}</div>
+            <div style="font-size: 0.92rem; color: #475569; margin-top: 2px;">
+              Kurikulum Merdeka AI • ${subject} • Lembar #${index}
+            </div>
+          </div>
+          <div style="border: 2px solid ${isSD ? '#3b82f6' : '#000'}; padding: 6px 16px; border-radius: 8px; font-weight: bold; font-size:0.9rem;">
+            NILAI
+          </div>
+        </div>
+
+        <div class="ws-student-info">
+          <span>Nama Lengkap : ________________________________</span>
+          <span>Kelas / No : __________________</span>
+        </div>
+
+        <div class="ws-instructions">
+          <strong>📌 Capaian Pembelajaran:</strong> ${data.objective || 'Mencapai kompetensi pembelajaran standar.'}<br>
+          <strong>💡 Petunjuk Pengerjaan:</strong> ${data.instructions || 'Kerjakanlah dengan teliti dan mandiri.'}
+        </div>
+
+        ${readingBoxHTML}
+
+        <div class="questions-list">
+          ${questionsHTML}
+        </div>
+
+        <div class="tk-footer" style="margin-top: 28px;">
+          ✨ WorksheetGenius ID • Kurikulum Merdeka AI ✨
+        </div>
+      `;
+
+      const answerPage = createDedicatedAnswerKeyPage(
+        `KUNCI JAWABAN: ${data.title || subject}`,
+        `Jenjang: ${level.toUpperCase()} • Mata Pelajaran: ${subject} • Lembar #${index}`,
+        answerList,
+        "KUNCI JAWABAN & PEMBAHASAN",
+        difficulty
+      );
+
+      return { studentPage: page, answerPage: answerPage };
+    }
+
+    async function generateWorksheetsAI() {
+      const btn = document.getElementById("btnGenerate");
+      const level = document.getElementById("jenjang").value;
+      const formSubject = document.getElementById("subject").value;
+      const count = parseInt(document.getElementById("count").value) || 1;
+      const formDifficulty = document.getElementById("difficulty").value;
+      const formTheme = document.getElementById("theme").value;
+      const output = document.getElementById("output");
+
+      if (btn) btn.disabled = true;
+      output.innerHTML = "";
+      setStatus("loading", `🚀 Menghubungkan ke layanan AI... Mempersiapkan ${count} lembar kerja untuk jenjang ${level.toUpperCase()}...`);
+
+      const availableSubjects = subjectMapping[level] || [];
+      const difficultiesList = ["Mudah", "Sedang", "Sulit"];
+      const paudActivities = ["mewarnai", "perbedaan", "pola", "tarikGaris", "counting"];
+      const shuffledThemes = [...toddlerColoringThemes].sort(() => 0.5 - Math.random());
+
+      const studentPages = [];
+      const answerPages = [];
+
+      try {
+        for (let i = 1; i <= count; i++) {
+          setStatus("loading", `⏳ Sedang menyusun Lembar #${i} dari ${count}...`);
+
+          const currentSubject = (formSubject === "Acak")
+            ? availableSubjects[(i - 1) % availableSubjects.length]
+            : formSubject;
+
+          const currentDifficulty = (formDifficulty === "Acak")
+            ? difficultiesList[Math.floor(Math.random() * difficultiesList.length)]
+            : formDifficulty;
+
+          if (level === "paud" || level === "tk") {
+            let actType = "mewarnai";
+            if (currentSubject.includes("Mewarnai")) actType = "mewarnai";
+            else if (currentSubject.includes("Perbedaan")) actType = "perbedaan";
+            else if (currentSubject.includes("Pola")) actType = "pola";
+            else if (currentSubject.includes("Tarik Garis")) actType = "tarikGaris";
+            else if (currentSubject.includes("Menghitung")) actType = "counting";
+            else {
+              actType = paudActivities[(i - 1) % paudActivities.length];
+            }
+
+            const assignedThemeObj = shuffledThemes[(i - 1) % shuffledThemes.length];
+            const result = await renderPaudTkLiveAI(actType, formTheme, i, assignedThemeObj, currentDifficulty);
+            studentPages.push(result.studentPage);
+            if (result.answerPage) answerPages.push(result.answerPage);
+          } else {
+            const systemPrompt = buildProductionSystemPrompt(level, currentSubject, currentDifficulty, i);
+            const aiData = await fetchBackendWorksheet(systemPrompt);
+            const result = renderWorksheet(level, aiData, currentSubject, i, currentDifficulty);
+            studentPages.push(result.studentPage);
+            if (result.answerPage) answerPages.push(result.answerPage);
+          }
+
+          if (i < count) await sleep(800);
+        }
+
+        studentPages.forEach(p => output.appendChild(p));
+        answerPages.forEach(p => output.appendChild(p));
+
+        setStatus("success", `✅ Berhasil membuat ${count} lembar kerja siswa + ${answerPages.length} lembar kunci jawaban terpisah! Klik '📥 Download PDF (A4)' untuk mencetak.`);
+      } catch (err) {
+        setStatus("error", `❌ Error saat membuat worksheet:<br><strong>${err.message}</strong>`);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      setupRobustLogo();
+      updateSubjects();
+      updateConnectionIndicator();
+    });
+  </script>
+</body>
+</html>
