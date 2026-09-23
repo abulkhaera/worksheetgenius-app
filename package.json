@@ -1,0 +1,13 @@
+{
+  "name": "worksheetgenius-app",
+  "version": "1.0.0",
+  "description": "Generator Lembar Kerja Edukasi Kurikulum Merdeka & Visual PAUD/TK",
+  "main": "index.html",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  }
+}
