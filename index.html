@@ -3,23 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WorksheetGenius ID - Puter.js Reinitiated Edition</title>
+  <title>WorksheetGenius.id - Generator Lembar Kerja Edukasi</title>
   
   <link rel="icon" type="image/png" href="Logo.png" id="favIcon">
-  <link rel="shortcut icon" type="image/png" href="Logo.png" id="favShortcut">
-  <link rel="apple-touch-icon" href="Logo.png" id="favApple">
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <!-- Puter.js SDK Reinitiated -->
-  <script src="https://js.puter.com/v2/"></script>
 
   <style>
-    :root { var-font-sans: 'Plus Jakarta Sans', sans-serif; }
     body { font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient(135deg, #f0f4ff 0%, #f8fafc 50%, #f1f5f9 100%); min-height: 100vh; color: #0f172a; }
     .glass-panel { background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgba(226, 232, 240, 0.85); }
     .glass-header { background: linear-gradient(135deg, #3730a3 0%, #4338ca 40%, #2563eb 100%); box-shadow: 0 10px 25px -5px rgba(55, 48, 163, 0.25); }
@@ -39,8 +33,6 @@
     .ws-paud-tk .tk-banner-wrap { display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 12px; }
     .ws-paud-tk .tk-banner { background: linear-gradient(180deg, #fef08a 0%, #facc15 100%); border: 3.5px solid #d97706; border-radius: 40px; padding: 8px 36px; text-align: center; box-shadow: 0 4px 0 #b45309; display: inline-flex; align-items: center; gap: 8px; }
     .ws-paud-tk .tk-banner h2 { font-size: 1.65rem; font-weight: 700; color: #1d4ed8; letter-spacing: 0.5px; text-transform: uppercase; text-shadow: 1px 1px 0 #fff; }
-    .ws-paud-tk .tk-student-info { background: #eff6ff; border: 2px solid #60a5fa; border-radius: 24px; padding: 8px 24px; display: flex; justify-content: space-between; margin-bottom: 14px; font-size: 1.05rem; color: #1e40af; font-weight: 600; }
-    .ws-paud-tk .tk-instruction-pill { background: #ffe4e6; border: 2px solid #fda4af; border-radius: 22px; padding: 8px 18px; text-align: center; font-size: 1.05rem; font-weight: 700; color: #be123c; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
     .ai-image-frame { border: 4px solid #38bdf8; border-radius: 22px; background: #ffffff; padding: 0; margin-bottom: 14px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; box-shadow: 0 4px 14px rgba(56, 189, 248, 0.15); overflow: hidden; width: 100%; }
     .ai-generated-img { width: 100%; height: auto; max-height: 520px; object-fit: contain; border-radius: 18px; background: #ffffff; display: block; }
@@ -59,7 +51,6 @@
     .ws-smp-sma .q-item { margin-bottom: 18px; font-size: 1.05rem; text-align: justify; line-height: 1.5; }
     .ws-smp-sma .q-options { list-style-type: upper-alpha; margin-left: 24px; margin-top: 6px; }
 
-    .tk-footer { text-align: center; font-size: 0.92rem; color: #059669; font-weight: bold; margin-top: 18px; }
     .spinner { width: 44px; height: 44px; border: 4px solid #bae6fd; border-top-color: #0284c7; border-radius: 50%; animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -79,25 +70,25 @@
           
           <div class="brand-logo-card mb-3">
             <div class="brand-logo-wrapper">
-              <img id="mainBrandLogo" src="Logo.png" alt="WorksheetGenius ID Logo" class="w-full h-full object-contain" onerror="this.onerror=null; this.src='Logo_2.png';">
+              <img id="mainBrandLogo" src="Logo.png" alt="WorksheetGenius.id Logo" class="w-full h-full object-contain" onerror="this.onerror=null; this.src='Logo_2.png';">
             </div>
             <div class="flex flex-col text-left">
               <span class="text-xl sm:text-2xl font-black tracking-tight leading-none text-white">
                 WorksheetGenius<span class="text-amber-300">.id</span>
               </span>
               <span class="text-[11px] font-semibold text-white/80 tracking-wide uppercase mt-1">
-                Puter.js Hybrid AI Edition
+                Generator Lembar Kerja Kurikulum Merdeka
               </span>
             </div>
           </div>
 
           <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase mb-2">
-            <span>⚡ PUTER.JS INTEGRATED</span>
+            <span>🚀 GOOGLE GEMINI 2.5 FLASH</span>
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>
           </div>
 
           <p class="text-white/85 text-xs sm:text-sm mt-1 max-w-xl text-left">
-            Buat Lembar Kerja Peserta Didik (LKPD) otomatis berbasis Taksonomi Bloom & Kurikulum Merdeka menggunakan Puter.js AI & Google Gemini.
+            Buat Lembar Kerja Peserta Didik (LKPD) otomatis berbasis Taksonomi Bloom & Kurikulum Merdeka untuk PAUD hingga SMA.
           </p>
         </div>
         
@@ -115,15 +106,15 @@
       <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-200">
         <div class="flex items-center gap-2 text-indigo-900 font-bold text-base">
           <span>🛠️</span>
-          <span>Pengaturan Koneksi AI (Google Gemini / Puter.js)</span>
+          <span>Pengaturan Google Gemini API Key</span>
         </div>
         <button type="button" onclick="toggleBackendSettings()" class="text-slate-400 hover:text-slate-600 text-sm font-semibold">Tutup ✕</button>
       </div>
 
       <div class="bg-indigo-50/50 p-4 rounded-xl border-2 border-indigo-200">
-        <label class="text-xs font-bold text-slate-800 block mb-1">Google Gemini API Key (Opsional - Jika kosong menggunakan Puter.js Free AI)</label>
+        <label class="text-xs font-bold text-slate-800 block mb-1">Google Gemini API Key</label>
         <input type="password" id="customApiKey" placeholder="AIzaSy..." class="w-full text-xs font-mono p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-        <span class="text-[11px] text-slate-500 mt-1 block">Tersimpan aman di peramban Anda. Dapatkan di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-600 underline font-semibold">Google AI Studio</a>.</span>
+        <span class="text-[11px] text-slate-500 mt-1 block">Tersimpan aman di peramban Anda. Dapatkan API Key gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-600 underline font-semibold">Google AI Studio</a>.</span>
       </div>
 
       <div class="flex items-center gap-3 mt-4 pt-3 border-t border-slate-200">
@@ -131,7 +122,7 @@
       </div>
     </div>
 
-    <!-- Parameter Controls Card -->
+    <!-- Controls Panel -->
     <div class="glass-panel rounded-2xl p-6 sm:p-7 shadow-lg border border-slate-200/80 mb-8 no-print">
       <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-200/70">
         <div class="flex items-center gap-2">
@@ -267,86 +258,92 @@
       });
     }
 
-    // Hybrid Image Caller: Direct Gemini Nano Banana -> Fallback Puter.js AI
     async function callBackendImage(promptText, aspectRatio = "3:4") {
       const apiKey = getSavedApiKey();
       
-      // 1. Direct Google Gemini Nano Banana Request jika API key diisi
-      if (apiKey) {
+      if (!apiKey) {
+        throw new Error("Google Gemini API Key belum diisi! Silakan klik tombol ⚙️ Koneksi AI di kanan atas dan masukkan API Key Anda.");
+      }
+
+      let isLocalOrigin = window.location.protocol.startsWith('http');
+      if (isLocalOrigin) {
         try {
-          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`, {
+          const resServer = await fetch('/api/generate-image', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: promptText }] }],
-              generationConfig: { responseMimeType: "image/jpeg" }
-            })
+            body: JSON.stringify({ prompt: promptText, apiKey: apiKey })
           });
-          if (res.ok) {
-            const data = await res.json();
-            const part = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData || p.inline_data);
-            if (part) {
-              const mime = part.inlineData?.mimeType || part.inline_data?.mime_type || "image/jpeg";
-              const bytes = part.inlineData?.data || part.inline_data?.data;
-              return `data:${mime};base64,${bytes}`;
-            }
+          if (resServer.ok) {
+            const dataServer = await resServer.json();
+            if (dataServer.imageUrl) return dataServer.imageUrl;
           }
-        } catch (e) {
-          console.warn("Direct Google API Key call failed, falling back to Puter.js AI...", e);
-        }
+        } catch(e) {}
       }
 
-      // 2. Puter.js Free AI Engine Fallback
-      if (typeof puter !== 'undefined' && puter.ai && puter.ai.txt2img) {
-        try {
-          const imgElement = await puter.ai.txt2img(promptText);
-          return imgElement.src;
-        } catch (err) {
-          console.warn("Puter txt2img error:", err);
-          throw new Error("Gagal membuat gambar dengan Puter.js. Silakan periksa koneksi atau atur Google API Key.");
-        }
-      }
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: promptText }] }],
+          generationConfig: { responseMimeType: "image/jpeg" }
+        })
+      });
 
-      throw new Error("Puter.js SDK belum siap dan Google API Key belum diatur.");
+      if (res.ok) {
+        const data = await res.json();
+        const part = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData || p.inline_data);
+        if (part) {
+          const mime = part.inlineData?.mimeType || part.inline_data?.mime_type || "image/jpeg";
+          const bytes = part.inlineData?.data || part.inline_data?.data;
+          return `data:${mime};base64,${bytes}`;
+        }
+        throw new Error("Google Gemini 2.5 Flash Image tidak mengembalikan data gambar.");
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        const errMsg = errJson?.error?.message || `HTTP ${res.status}`;
+        throw new Error(`Google Gemini API Error [${errMsg}]`);
+      }
     }
 
-    // Hybrid Text Caller: Direct Gemini Flash -> Fallback Puter.js Chat AI
     async function fetchBackendWorksheet(systemPrompt) {
       const apiKey = getSavedApiKey();
-      
-      if (apiKey) {
+      if (!apiKey) {
+        throw new Error("Silakan masukkan Google Gemini API Key Anda pada menu ⚙️ Koneksi AI.");
+      }
+
+      let isLocalOrigin = window.location.protocol.startsWith('http');
+      if (isLocalOrigin) {
         try {
-          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+          const resServer = await fetch('/api/generate-worksheet', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ role: 'user', parts: [{ text: systemPrompt }] }],
-              generationConfig: { responseMimeType: 'application/json', temperature: 0.7 }
-            })
+            body: JSON.stringify({ systemPrompt: systemPrompt, apiKey: apiKey })
           });
-          if (res.ok) {
-            const data = await res.json();
-            const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-            const cleanJson = rawText.trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/i, "");
-            return JSON.parse(cleanJson);
+          if (resServer.ok) {
+            const dataServer = await resServer.json();
+            if (dataServer.data) return dataServer.data;
           }
-        } catch (e) {
-          console.warn("Direct Google Gemini text call failed, falling back to Puter.js AI...", e);
-        }
+        } catch(e) {}
       }
 
-      if (typeof puter !== 'undefined' && puter.ai && puter.ai.chat) {
-        try {
-          const response = await puter.ai.chat(systemPrompt, { model: 'gemini-2.5-flash' });
-          const rawText = typeof response === 'string' ? response : (response?.message?.content || response.toString());
-          const cleanJson = rawText.trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/i, "");
-          return JSON.parse(cleanJson);
-        } catch (err) {
-          throw new Error("Puter.js Gemini Error: " + err.message);
-        }
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: systemPrompt }] }],
+          generationConfig: { responseMimeType: 'application/json', temperature: 0.7 }
+        })
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Google API Error: [HTTP ${res.status}] ${errText}`);
       }
 
-      throw new Error("Silakan masukkan Google Gemini API Key Anda pada menu ⚙️ Koneksi AI.");
+      const data = await res.json();
+      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      const cleanJson = rawText.trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/i, "");
+      return JSON.parse(cleanJson);
     }
 
     function buildProductionSystemPrompt(level, subject, difficulty, index) {
@@ -373,7 +370,7 @@ Format Output JSON:
       const statusBox = document.getElementById("statusContainer");
 
       output.innerHTML = "";
-      statusBox.innerHTML = `<div class="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl text-indigo-900 text-xs font-semibold flex items-center gap-3"><div class="spinner" style="width:20px;height:20px;border-width:2.5px;"></div> <span>Sedang memproses lembar kerja via AI Engine...</span></div>`;
+      statusBox.innerHTML = `<div class="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl text-indigo-900 text-xs font-semibold flex items-center gap-3"><div class="spinner" style="width:20px;height:20px;border-width:2.5px;"></div> <span>Sedang memproses lembar kerja via Google Gemini 2.5 Flash...</span></div>`;
 
       try {
         for (let i = 1; i <= count; i++) {
@@ -393,7 +390,7 @@ Format Output JSON:
               </div>
               <div class="ai-image-frame">
                 <div id="loader_${i}" class="flex flex-col items-center gap-2 text-indigo-600 font-bold p-6">
-                  <div class="spinner"></div><span>Melukis visual dengan Puter / Gemini AI Engine...</span>
+                  <div class="spinner"></div><span>Melukis visual murni dengan Google Gemini 2.5 Flash AI...</span>
                 </div>
                 <img id="img_${i}" class="ai-generated-img" style="display:none;" />
               </div>
@@ -421,7 +418,7 @@ Format Output JSON:
               <div class="questions-list">
                 ${(aiData.questions || []).map(q => `
                   <div class="q-item">
-                    <strong>${q.id}. ${q.prompt}</strong>
+                    <strong>${q.id}.${q.prompt}</strong>
                     <div class="q-options">${(q.options || []).map(opt => `<div>${opt}</div>`).join('')}</div>
                   </div>
                 `).join('')}
