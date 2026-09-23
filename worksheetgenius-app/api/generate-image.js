@@ -1,1865 +1,236 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WorksheetGenius ID - Generator Lembar Kerja Siswa A4</title>
-  
-  <!-- App Favicon with multi-source fallback -->
-  <link rel="icon" type="image/png" href="Logo.png" id="favIcon">
-  <link rel="shortcut icon" type="image/png" href="Logo.png" id="favShortcut">
-  <link rel="apple-touch-icon" href="Logo.png" id="favApple">
+module.exports = async (req, res) => {
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, x-api-key'
+  );
 
-  <!-- Modern Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-  
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- html2pdf for direct A4 PDF generation -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
 
-  <style>
-    :root {
-      --font-sans: 'Plus Jakarta Sans', sans-serif;
-    }
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Metode request harus POST' });
+  }
 
-    body {
-      font-family: var(--font-sans);
-      background: linear-gradient(135deg, #f0f4ff 0%, #f8fafc 50%, #f1f5f9 100%);
-      min-height: 100vh;
-      color: #0f172a;
-    }
+  const apiKey =
+    process.env.GEMINI_API_KEY ||
+    req.headers['x-api-key'] ||
+    req.body?.apiKey;
 
-    .glass-panel {
-      background: rgba(255, 255, 255, 0.94);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(226, 232, 240, 0.85);
-    }
+  const { prompt, aspectRatio = '3:4' } = req.body || {};
+  if (!prompt) {
+    return res.status(400).json({ error: "Parameter 'prompt' wajib disertakan." });
+  }
 
-    .glass-header {
-      background: linear-gradient(135deg, #3730a3 0%, #4338ca 40%, #2563eb 100%);
-      box-shadow: 0 10px 25px -5px rgba(55, 48, 163, 0.25);
-    }
+  const cleanPrompt = prompt
+    .replace(/\bdisney princess\b/gi, 'fairytale storybook princess')
+    .replace(/\bdisney\b/gi, 'cute cartoon')
+    .replace(/\bpixar\b/gi, '3D animation style')
+    .trim();
 
-    .brand-logo-card {
-      display: inline-flex;
-      align-items: center;
-      gap: 14px;
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      padding: 8px 20px 8px 12px;
-      border-radius: 20px;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
-    }
-
-    .brand-logo-wrapper {
-      width: 50px;
-      height: 50px;
-      background: transparent;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: visible;
-      flex-shrink: 0;
-      padding: 0;
-      filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.2));
-    }
-
-    .brand-logo-wrapper img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    /* Worksheet A4 Standard Canvas */
-    .ws-page {
-      background: #ffffff;
-      width: 100%;
-      max-width: 210mm;
-      min-height: 297mm;
-      padding: 16mm 14mm;
-      box-shadow: 0 12px 35px -8px rgba(15, 23, 42, 0.12);
-      position: relative;
-      page-break-after: always;
-      box-sizing: border-box;
-      margin: 0 auto 28px auto;
-      border-radius: 12px;
-    }
-
-    /* Badge Difficulty Indicators */
-    .diff-pill {
-      font-size: 0.76rem;
-      font-weight: 800;
-      padding: 4px 12px;
-      border-radius: 9999px;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      margin-bottom: 8px;
-    }
-    .diff-mudah { background: #dcfce7; color: #15803d; border: 1.5px solid #86efac; }
-    .diff-sedang { background: #fef9c3; color: #a16207; border: 1.5px solid #fde047; }
-    .diff-sulit { background: #fee2e2; color: #b91c1c; border: 1.5px solid #fca5a5; }
-
-    /* Reading Passage Box */
-    .reading-passage-box {
-      background: #fffbeb;
-      border: 2px solid #fde68a;
-      border-radius: 14px;
-      padding: 18px 22px;
-      margin-bottom: 22px;
-      box-shadow: 0 2px 6px rgba(245, 158, 11, 0.05);
-    }
-    .reading-passage-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 800;
-      font-size: 1.05rem;
-      color: #92400e;
-      margin-bottom: 10px;
-      border-bottom: 1.5px dashed #fcd34d;
-      padding-bottom: 6px;
-    }
-    .reading-passage-text {
-      font-size: 1rem;
-      line-height: 1.8;
-      color: #1e293b;
-      text-align: justify;
-      white-space: pre-line;
-    }
-
-    /* PAUD & TK Layout */
-    .ws-paud-tk {
-      font-family: 'Fredoka', cursive, sans-serif;
-      border: 8px solid #84cc16;
-      border-radius: 26px;
-      background-color: #ffffff;
-      color: #1e293b;
-      padding: 22px;
-      position: relative;
-      background-image: radial-gradient(#f0fdf4 18%, transparent 19%);
-      background-size: 22px 22px;
-    }
-
-    .ws-paud-tk .tk-banner-wrap {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .ws-paud-tk .tk-banner {
-      background: linear-gradient(180deg, #fef08a 0%, #facc15 100%);
-      border: 3.5px solid #d97706;
-      border-radius: 40px;
-      padding: 8px 36px;
-      text-align: center;
-      box-shadow: 0 4px 0 #b45309;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .ws-paud-tk .tk-banner h2 {
-      font-size: 1.65rem;
-      font-weight: 700;
-      color: #1d4ed8;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      text-shadow: 1px 1px 0 #fff;
-    }
-
-    .ws-paud-tk .tk-student-info {
-      background: #eff6ff;
-      border: 2px solid #60a5fa;
-      border-radius: 24px;
-      padding: 8px 24px;
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 14px;
-      font-size: 1.05rem;
-      color: #1e40af;
-      font-weight: 600;
-    }
-
-    .ws-paud-tk .tk-instruction-pill {
-      background: #ffe4e6;
-      border: 2px solid #fda4af;
-      border-radius: 22px;
-      padding: 8px 18px;
-      text-align: center;
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: #be123c;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    /* AI Image Frames */
-    .ai-image-frame {
-      border: 4px solid #38bdf8;
-      border-radius: 22px;
-      background: #ffffff;
-      padding: 0;
-      margin-bottom: 14px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.15);
-      overflow: hidden;
-      width: 100%;
-    }
-
-    .ai-coloring-frame { min-height: 480px; }
-    .ai-diff-frame { min-height: 380px; }
-
-    .ai-generated-img {
-      width: 100%;
-      height: auto;
-      max-height: 520px;
-      object-fit: contain;
-      border-radius: 18px;
-      background: #ffffff;
-      display: block;
-    }
-
-    .ai-loading-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 36px;
-      gap: 14px;
-      color: #0284c7;
-      font-weight: 700;
-      text-align: center;
-      font-size: 1.05rem;
-    }
-
-    /* Pattern Matching Rows */
-    .pattern-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #ffffff;
-      border: 2.5px solid #bae6fd;
-      border-radius: 16px;
-      padding: 12px 18px;
-      margin-bottom: 14px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-    }
-    .pattern-num {
-      background: #ec4899;
-      color: white;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 1.2rem;
-      margin-right: 12px;
-      flex-shrink: 0;
-    }
-    .pattern-sequence {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 2.4rem;
-      flex: 1;
-    }
-    .pattern-q-box {
-      width: 52px;
-      height: 52px;
-      border: 3px dashed #0284c7;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.8rem;
-      color: #0284c7;
-      background: #f0f9ff;
-      font-weight: bold;
-    }
-    .pattern-options-divider {
-      width: 2px;
-      height: 44px;
-      border-left: 2px dashed #cbd5e1;
-      margin: 0 16px;
-    }
-    .pattern-options-group { display: flex; gap: 10px; }
-    .pattern-opt-box {
-      width: 52px;
-      height: 52px;
-      border: 2px solid #7dd3fc;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2.1rem;
-      background: #ffffff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-    }
-
-    /* Matching Line */
-    .match-table {
-      display: flex;
-      justify-content: space-between;
-      gap: 24px;
-      padding: 12px 16px;
-    }
-    .match-col { display: flex; flex-direction: column; gap: 16px; flex: 1; }
-    .match-card {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 18px;
-      border-radius: 16px;
-      border: 2.5px solid #cbd5e1;
-      background: #ffffff;
-      font-size: 1.35rem;
-      font-weight: 700;
-      color: #334155;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    }
-    .match-dot {
-      width: 18px;
-      height: 18px;
-      background-color: #3b82f6;
-      border: 3px solid #bfdbfe;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    /* SD Styling */
-    .ws-sd {
-      font-family: 'Nunito', sans-serif;
-      border: 5px solid #3b82f6;
-      border-radius: 16px;
-      background-color: #ffffff;
-      color: #1e293b;
-    }
-    .ws-sd .ws-header {
-      border-bottom: 3.5px solid #3b82f6;
-      padding-bottom: 14px;
-      margin-bottom: 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-    .ws-sd .ws-title { font-size: 1.65rem; color: #1d4ed8; font-weight: 800; }
-    .ws-sd .ws-student-info {
-      background: #eff6ff;
-      padding: 12px 16px;
-      border-radius: 12px;
-      border: 1.5px solid #bfdbfe;
-      display: flex;
-      justify-content: space-between;
-      font-weight: 700;
-      margin-bottom: 18px;
-      font-size: 1.02rem;
-    }
-    .ws-sd .ws-instructions {
-      background: #f0fdf4;
-      border-left: 5px solid #22c55e;
-      padding: 10px 16px;
-      font-weight: 700;
-      color: #15803d;
-      margin-bottom: 22px;
-      font-size: 0.98rem;
-    }
-    .ws-sd .q-item {
-      margin-bottom: 18px;
-      padding: 12px 16px;
-      background: #f8fafc;
-      border-radius: 10px;
-      border: 1px solid #e2e8f0;
-      font-size: 1.02rem;
-      line-height: 1.6;
-    }
-    .ws-sd .q-options {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-top: 8px;
-      padding-left: 18px;
-    }
-
-    /* SMP & SMA */
-    .ws-smp-sma {
-      font-family: 'Times New Roman', Times, serif;
-      border: 1px solid #000;
-      border-radius: 0;
-      background-color: #ffffff;
-      color: #000;
-    }
-    .ws-smp-sma .ws-header {
-      border-bottom: 3px double #000;
-      padding-bottom: 14px;
-      margin-bottom: 18px;
-      text-align: center;
-    }
-    .ws-smp-sma .ws-title {
-      font-size: 1.5rem;
-      font-weight: bold;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-    .ws-smp-sma .ws-student-info {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 18px;
-      font-size: 1.05rem;
-      line-height: 1.8;
-    }
-    .ws-smp-sma .ws-instructions {
-      border: 1px solid #000;
-      padding: 9px;
-      margin-bottom: 22px;
-      font-weight: bold;
-      background: #f9f9f9;
-    }
-    .ws-smp-sma .q-item {
-      margin-bottom: 18px;
-      font-size: 1.05rem;
-      text-align: justify;
-      line-height: 1.5;
-    }
-    .ws-smp-sma .q-options { list-style-type: upper-alpha; margin-left: 24px; margin-top: 6px; }
-
-    /* Dedicated Answer Key Page */
-    .ws-answer-page {
-      border: 3.5px dashed #6366f1 !important;
-      border-radius: 16px;
-      background-color: #faf5ff;
-    }
-    .answer-key-badge {
-      display: inline-block;
-      background: #7c3aed;
-      color: white;
-      font-weight: 800;
-      padding: 5px 18px;
-      border-radius: 20px;
-      font-size: 0.9rem;
-      letter-spacing: 0.5px;
-      margin-bottom: 10px;
-    }
-    .answer-key-card {
-      background: white;
-      border: 2px solid #ddd6fe;
-      border-radius: 12px;
-      padding: 18px;
-      margin-top: 14px;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.04);
-    }
-    .answer-key-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 9px 0;
-      border-bottom: 1px solid #f1f5f9;
-      font-size: 1rem;
-      line-height: 1.6;
-    }
-    .answer-key-num {
-      background: #ede9fe;
-      color: #6d28d9;
-      font-weight: bold;
-      padding: 2px 9px;
-      border-radius: 6px;
-      flex-shrink: 0;
-      font-size: 0.88rem;
-    }
-
-    .tk-footer {
-      text-align: center;
-      font-size: 0.92rem;
-      color: #059669;
-      font-weight: bold;
-      margin-top: 18px;
-    }
-
-    .spinner {
-      width: 44px;
-      height: 44px;
-      border: 4px solid #bae6fd;
-      border-top-color: #0284c7;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    @page {
-      size: A4 portrait;
-      margin: 12mm 10mm;
-    }
-
-    @media print {
-      body { background: none !important; padding: 0 !important; margin: 0 !important; }
-      .no-print { display: none !important; }
-      .ws-page {
-        width: 100% !important;
-        max-width: 100% !important;
-        min-height: auto !important;
-        padding: 6mm 8mm !important;
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        margin: 0 0 20px 0 !important;
-        page-break-after: always !important;
-        break-after: page !important;
+  // 1. Coba Google Gemini 2.5 Flash Image (Nano Banana Resmi, Tanpa preview)
+  if (apiKey) {
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`;
+    const payload = {
+      contents: [{ role: 'user', parts: [{ text: cleanPrompt }] }],
+      generationConfig: {
+        responseModalities: ['IMAGE'],
+        imageConfig: { aspectRatio: aspectRatio }
       }
-      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-    }
-  </style>
-</head>
-<body class="py-6 px-3 sm:px-6">
-
-  <div class="max-w-5xl mx-auto">
-    
-    <!-- Top Navigation Header -->
-    <header class="glass-header text-white rounded-2xl p-6 sm:p-8 mb-6 shadow-xl relative overflow-hidden no-print">
-      <div class="absolute -right-12 -top-12 w-52 h-52 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
-        <div class="flex flex-col items-start text-left">
-          
-          <!-- Embedded Brand Logo Card with Seamless Transparent Logo -->
-          <div class="brand-logo-card mb-3">
-            <div class="brand-logo-wrapper">
-              <img 
-                id="mainBrandLogo"
-                src="Logo.png" 
-                alt="WorksheetGenius ID Logo" 
-                class="w-full h-full object-contain"
-              >
-            </div>
-            <div class="flex flex-col text-left">
-              <span class="text-xl sm:text-2xl font-black tracking-tight leading-none text-white drop-shadow-sm">
-                WorksheetGenius<span class="text-amber-300">.id</span>
-              </span>
-              <span class="text-[11px] font-semibold text-white/80 tracking-wide uppercase mt-1">
-                Generator Lembar Kerja Kurikulum Merdeka
-              </span>
-            </div>
-          </div>
-
-          <!-- Kurikulum Merdeka AI Pill -->
-          <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase mb-2">
-            <span>🚀 Kurikulum Merdeka AI</span>
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>
-            <span>Edisi Cloud Ready</span>
-          </div>
-
-          <p class="text-white/85 text-xs sm:text-sm mt-1 max-w-xl text-left">
-            Buat Lembar Kerja Peserta Didik (LKPD) otomatis berbasis Taksonomi Bloom & Kurikulum Merdeka untuk PAUD hingga SMA.
-          </p>
-        </div>
-        
-        <div class="flex items-center gap-3">
-          <button type="button" onclick="toggleBackendSettings()" class="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 backdrop-blur-md px-4 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-sm">
-            <span>⚙️</span>
-            <span>Koneksi AI</span>
-            <span id="connIndicator" class="w-2 h-2 rounded-full bg-emerald-400"></span>
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <!-- Collapsible Settings Panel -->
-    <div id="backendSettingsBox" class="hidden glass-panel rounded-2xl p-6 mb-6 shadow-md border-2 border-indigo-200 no-print transition-all duration-300">
-      <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-200">
-        <div class="flex items-center gap-2 text-indigo-900 font-bold text-base">
-          <span>🛠️</span>
-          <span>Pengaturan Koneksi AI (Server Proxy / Cloud)</span>
-        </div>
-        <button type="button" onclick="toggleBackendSettings()" class="text-slate-400 hover:text-slate-600 text-sm font-semibold">Tutup ✕</button>
-      </div>
-
-      <div class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 mb-4 leading-relaxed">
-        <strong>💡 Mode Cloud Aktif:</strong> Aplikasi ini dirancang memanggil endpoint serverless Vercel (kunci API aman di cloud). Kunci Google Gemini gratis Anda digunakan untuk menyusun soal teks, sedangkan gambar visual PAUD/TK otomatis dilengkapi mesin bebas kuota (*auto-fallback*).
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="bg-indigo-50/50 hover:bg-white p-4 rounded-xl border-2 border-indigo-200 transition-colors">
-          <div class="flex items-center justify-between mb-1">
-            <label class="text-xs font-bold text-slate-800">Google Gemini API Key Langsung</label>
-            <span class="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-bold">Instan</span>
-          </div>
-          <p class="text-xs text-slate-600 mb-2.5">
-            Dapatkan API Key di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-600 underline font-semibold">Google AI Studio</a>:
-          </p>
-          <input type="password" id="customApiKey" placeholder="AIzaSy... atau AQ.Ab..." class="w-full text-xs font-mono p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          <span class="text-[11px] text-slate-500 mt-1 block">Tersimpan aman di peramban Anda untuk semua sesi.</span>
-        </div>
-
-        <div class="bg-slate-50 hover:bg-white p-4 rounded-xl border border-slate-200 transition-colors">
-          <div class="flex items-center justify-between mb-1">
-            <label class="text-xs font-bold text-slate-700">Opsional: URL Backend Proxy Kustom</label>
-            <span class="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded font-bold">Host</span>
-          </div>
-          <p class="text-xs text-slate-500 mb-2.5">Biarkan kosong saat berjalan di Vercel.</p>
-          <input type="text" id="customBackendUrl" placeholder="https://worksheetgenius-app.vercel.app" class="w-full text-xs font-mono p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-        </div>
-      </div>
-
-      <div class="flex items-center gap-3 mt-4 pt-3 border-t border-slate-200">
-        <button type="button" onclick="saveSettings()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs py-2 px-4 rounded-lg shadow-sm transition">💾 Simpan Konfigurasi</button>
-        <button type="button" onclick="resetSettings()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-xs py-2 px-4 rounded-lg transition">Reset Default</button>
-      </div>
-    </div>
-
-    <!-- Generator Configuration Card -->
-    <div class="glass-panel rounded-2xl p-6 sm:p-7 shadow-lg border border-slate-200/80 mb-8 no-print">
-      <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-200/70">
-        <div class="flex items-center gap-2">
-          <span class="p-2 rounded-xl bg-indigo-50 text-indigo-600 font-bold text-base">📋</span>
-          <div>
-            <h2 class="text-base sm:lg font-bold text-slate-800">Parameter Pembuatan Lembar Kerja</h2>
-            <p class="text-xs text-slate-500">Sesuaikan jenjang, topik kurikulum, dan tingkat kesulitan.</p>
-          </div>
-        </div>
-        <div class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold rounded-lg">
-          <span>✨</span> Auto-Format A4
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
-        
-        <!-- 1. Jenjang Pendidikan -->
-        <div class="flex flex-col gap-1.5">
-          <label for="jenjang" class="text-xs font-bold text-slate-700 flex items-center gap-1">
-            <span>1. Jenjang Pendidikan</span>
-          </label>
-          <select id="jenjang" onchange="updateSubjects()" class="p-3 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm transition">
-            <option value="paud">PAUD (3-4 tahun)</option>
-            <option value="tk" selected>TK (4-6 tahun)</option>
-            <option value="sd">SD (Kelas 1 - 6)</option>
-            <option value="smp">SMP (Kelas 7 - 9)</option>
-            <option value="sma">SMA (Kelas 10 - 12)</option>
-          </select>
-        </div>
-
-        <!-- 2. Mata Pelajaran / Tema -->
-        <div class="flex flex-col gap-1.5">
-          <label for="subject" class="text-xs font-bold text-slate-700">2. Mata Pelajaran / Tema</label>
-          <select id="subject" class="p-3 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm transition">
-            <option value="Acak" selected>🎲 Acak (Bervariasi Tiap Lembar)</option>
-            <option value="Belajar Mewarnai">Belajar Mewarnai</option>
-            <option value="Cari Perbedaan">Cari Perbedaan</option>
-            <option value="Ikuti Polanya (Bentuk & Karakter)">Ikuti Polanya (Bentuk & Karakter)</option>
-            <option value="Tarik Garis & Pasangkan">Tarik Garis & Pasangkan</option>
-            <option value="Menghitung Ceria">Menghitung Ceria</option>
-          </select>
-        </div>
-
-        <!-- 3. Jumlah Worksheet -->
-        <div class="flex flex-col gap-1.5">
-          <label for="count" class="text-xs font-bold text-slate-700">3. Jumlah Worksheet</label>
-          <div class="relative">
-            <input type="number" id="count" value="1" min="1" max="10" class="w-full p-3 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm transition">
-            <span class="absolute right-3.5 top-3 text-xs font-bold text-slate-400">Lembar</span>
-          </div>
-        </div>
-
-        <!-- 4. Tingkat Kesulitan (Default: Acak) -->
-        <div class="flex flex-col gap-1.5">
-          <label for="difficulty" class="text-xs font-bold text-slate-700 flex items-center justify-between">
-            <span>4. Tingkat Kesulitan</span>
-            <span class="text-[10px] text-indigo-600 font-bold bg-indigo-50 px-1.5 py-0.5 rounded">Bloom Taxonomy</span>
-          </label>
-          <select id="difficulty" class="p-3 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm transition">
-            <option value="Acak" selected>🎲 Acak (Bervariasi Tiap Lembar)</option>
-            <option value="Mudah">Mudah (C1 - C2 / Ceria)</option>
-            <option value="Sedang">Sedang (C3 / Terstruktur)</option>
-            <option value="Sulit">Sulit / HOTS (C4 - C5)</option>
-          </select>
-        </div>
-
-        <!-- 5. Tema Visual Karakter -->
-        <div class="flex flex-col gap-1.5 sm:col-span-2 lg:col-span-2">
-          <label for="theme" class="text-xs font-bold text-slate-700">5. Tema Karakter PAUD & TK</label>
-          <select id="theme" class="p-3 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm transition">
-            <option value="Acak" selected>🎲 Acak (AI Bebas Memilih Otomatis)</option>
-            <option value="Putri Kerajaan Ceria">Putri Kerajaan Ceria</option>
-            <option value="Pahlawan Super Cilik">Pahlawan Super Cilik</option>
-            <option value="Astronot Cilik di Angkasa">Astronot Cilik di Angkasa</option>
-            <option value="Sahabat Putri Duyung">Sahabat Putri Duyung</option>
-            <option value="Kelinci Manis di Kebun">Kelinci Manis di Kebun</option>
-          </select>
-        </div>
-
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-3 border-t border-slate-200/70">
-        <button id="btnGenerate" onclick="generateWorksheetsAI()" class="flex-1 inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all text-sm transform hover:-translate-y-0.5 active:translate-y-0">
-          <span>✨</span>
-          <span>Buat Lembar Kerja Siswa</span>
-        </button>
-
-        <button id="btnDownload" onclick="downloadWorksheetsPDF()" class="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-emerald-200 hover:shadow-emerald-300 transition-all text-sm transform hover:-translate-y-0.5 active:translate-y-0">
-          <span>📥</span>
-          <span>Download PDF (A4)</span>
-        </button>
-      </div>
-
-      <!-- Status Indicator Box -->
-      <div id="statusContainer" class="mt-4 empty:hidden"></div>
-    </div>
-
-    <!-- Output Worksheet Container -->
-    <div id="output" class="flex flex-col gap-8 items-center"></div>
-
-  </div>
-
-  <script>
-    // Bulletproof Logo & Favicon Loader with Cascading Sources
-    function updateFaviconLinks(url) {
-      const targets = ['favIcon', 'favShortcut', 'favApple'];
-      targets.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.href = url;
-      });
-    }
-
-    function setupRobustLogo() {
-      const img = document.getElementById("mainBrandLogo");
-      if (!img) return;
-
-      const candidates = [
-        "Logo.png",
-        "Logo_2.png",
-        "./Logo.png",
-        "./Logo_2.png",
-        "worksheetgenius-app/Logo.png",
-        "worksheetgenius-app/Logo_2.png",
-        "https://raw.githubusercontent.com/abulkhaera/worksheetgenius-app/main/worksheetgenius-app/Logo.png",
-        "https://raw.githubusercontent.com/abulkhaera/worksheetgenius-app/main/worksheetgenius-app/Logo_2.png",
-        "https://raw.githubusercontent.com/abulkhaera/worksheetgenius-app/main/Logo.png",
-        "https://raw.githubusercontent.com/abulkhaera/worksheetgenius-app/main/Logo_2.png"
-      ];
-
-      let candidateIndex = 0;
-
-      function tryNextSource() {
-        candidateIndex++;
-        if (candidateIndex < candidates.length) {
-          const nextSrc = candidates[candidateIndex];
-          img.src = nextSrc;
-          updateFaviconLinks(nextSrc);
-        } else {
-          const wrapper = img.parentElement;
-          if (wrapper) {
-            wrapper.innerHTML = `
-              <svg viewBox="0 0 120 120" class="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="bulbGrad" x1="20" y1="20" x2="100" y2="110" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stop-color="#f59e0b" />
-                    <stop offset="50%" stop-color="#06b6d4" />
-                    <stop offset="100%" stop-color="#0891b2" />
-                  </linearGradient>
-                </defs>
-                <rect x="18" y="44" width="38" height="48" rx="4" transform="rotate(-10 18 44)" stroke="#f59e0b" stroke-width="4.5" fill="#fff" />
-                <line x1="26" y1="52" x2="44" y2="48" stroke="#f59e0b" stroke-width="3" stroke-linecap="round" />
-                <line x1="28" y1="60" x2="48" y2="56" stroke="#f59e0b" stroke-width="3" stroke-linecap="round" />
-                <line x1="30" y1="68" x2="50" y2="64" stroke="#f59e0b" stroke-width="3" stroke-linecap="round" />
-                <polygon points="62,16 98,28 62,40 26,28" fill="url(#bulbGrad)" />
-                <rect x="42" y="37" width="40" height="9" rx="3" fill="#0891b2" />
-                <path d="M92 31 v16" stroke="#0891b2" stroke-width="3.5" stroke-linecap="round" />
-                <circle cx="92" cy="48" r="3" fill="#0891b2" />
-                <circle cx="68" cy="62" r="28" stroke="url(#bulbGrad)" stroke-width="5" fill="#ffffff" />
-                <path d="M57 85 h22 c0 4-4 8-11 8 s-11-4-11-8 z" fill="#0891b2" />
-                <line x1="59" y1="97" x2="77" y2="97" stroke="#0891b2" stroke-width="4" stroke-linecap="round" />
-                <line x1="102" y1="56" x2="114" y2="52" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" />
-                <line x1="98" y1="74" x2="110" y2="82" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" />
-                <line x1="38" y1="28" x2="28" y2="20" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" />
-              </svg>
-            `;
-          }
-        }
-      }
-
-      img.onerror = tryNextSource;
-      img.src = candidates[0];
-      updateFaviconLinks(candidates[0]);
-    }
-
-    function isCloudHosted() {
-      try {
-        const h = window.location.hostname;
-        return h.includes('vercel.app') || h.includes('render.com') || h.includes('pages.dev');
-      } catch (e) {
-        return false;
-      }
-    }
-
-    function getBackendBaseUrl() {
-      const saved = localStorage.getItem('ws_backend_custom_url');
-      if (saved && saved.trim()) return saved.trim().replace(/\/+$/, '');
-      if (window.location && window.location.origin && window.location.origin !== 'null' && window.location.protocol.startsWith('http')) {
-        return window.location.origin;
-      }
-      return 'http://localhost:3000';
-    }
-
-    function getBackendEndpoint(path) {
-      const base = getBackendBaseUrl();
-      const cleanPath = path.startsWith('/') ? path : `/${path}`;
-      return `${base}${cleanPath}`;
-    }
-
-    function getSavedApiKey() {
-      return (localStorage.getItem('ws_gemini_direct_key') || '').trim();
-    }
-
-    function hasValidAIConnection() {
-      if (isCloudHosted()) return true;
-      if (getSavedApiKey().length > 10) return true;
-      const customBackend = localStorage.getItem('ws_backend_custom_url');
-      if (customBackend && customBackend.trim().length > 5) return true;
-      return false;
-    }
-
-    function toggleBackendSettings() {
-      const box = document.getElementById('backendSettingsBox');
-      const inputUrl = document.getElementById('customBackendUrl');
-      const inputKey = document.getElementById('customApiKey');
-      if (!box) return;
-      box.classList.toggle('hidden');
-      if (!box.classList.contains('hidden')) {
-        if (inputUrl) inputUrl.value = localStorage.getItem('ws_backend_custom_url') || '';
-        if (inputKey) inputKey.value = localStorage.getItem('ws_gemini_direct_key') || '';
-      }
-    }
-
-    function saveSettings() {
-      const inputUrl = document.getElementById('customBackendUrl');
-      const inputKey = document.getElementById('customApiKey');
-      if (inputUrl && inputUrl.value.trim()) {
-        localStorage.setItem('ws_backend_custom_url', inputUrl.value.trim());
-      } else {
-        localStorage.removeItem('ws_backend_custom_url');
-      }
-
-      if (inputKey && inputKey.value.trim()) {
-        localStorage.setItem('ws_gemini_direct_key', inputKey.value.trim());
-      } else {
-        localStorage.removeItem('ws_gemini_direct_key');
-      }
-
-      updateConnectionIndicator();
-      setStatus('success', '✅ Pengaturan koneksi berhasil disimpan!');
-      toggleBackendSettings();
-    }
-
-    function resetSettings() {
-      localStorage.removeItem('ws_backend_custom_url');
-      localStorage.removeItem('ws_gemini_direct_key');
-      const inputUrl = document.getElementById('customBackendUrl');
-      const inputKey = document.getElementById('customApiKey');
-      if (inputUrl) inputUrl.value = '';
-      if (inputKey) inputKey.value = '';
-      updateConnectionIndicator();
-      setStatus('success', '✅ Pengaturan telah direset ke default.');
-      toggleBackendSettings();
-    }
-
-    function updateConnectionIndicator() {
-      const ind = document.getElementById('connIndicator');
-      if (!ind) return;
-      if (hasValidAIConnection()) {
-        ind.className = 'w-2 h-2 rounded-full bg-emerald-400';
-      } else {
-        ind.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
-      }
-    }
-
-    const subjectMapping = {
-      paud: [
-        "Belajar Mewarnai",
-        "Cari Perbedaan",
-        "Ikuti Polanya (Bentuk & Karakter)",
-        "Tarik Garis & Pasangkan",
-        "Menghitung Ceria"
-      ],
-      tk: [
-        "Belajar Mewarnai",
-        "Cari Perbedaan",
-        "Ikuti Polanya (Bentuk & Karakter)",
-        "Tarik Garis & Pasangkan",
-        "Menghitung Ceria"
-      ],
-      sd: [
-        "Bahasa Indonesia",
-        "Matematika Dasar",
-        "Ilmu Pengetahuan Alam (IPA)",
-        "Ilmu Pengetahuan Sosial (IPS)",
-        "Pendidikan Pancasila (PPKn)"
-      ],
-      smp: [
-        "Bahasa Indonesia",
-        "Matematika",
-        "IPA Terpadu (Fisika & Biologi)",
-        "Bahasa Inggris",
-        "IPS Terpadu",
-        "Informatika"
-      ],
-      sma: [
-        "Bahasa Indonesia",
-        "Matematika Wajib",
-        "Fisika",
-        "Biologi",
-        "Kimia",
-        "Ekonomi",
-        "Sejarah Indonesia",
-        "Bahasa Inggris"
-      ]
     };
 
-    function updateSubjects() {
-      const levelSelect = document.getElementById("jenjang");
-      const subjectSelect = document.getElementById("subject");
-      if (!levelSelect || !subjectSelect) return;
-
-      const level = levelSelect.value;
-      const list = subjectMapping[level] || [];
-      
-      subjectSelect.innerHTML = "";
-      const optRandom = document.createElement("option");
-      optRandom.value = "Acak";
-      optRandom.textContent = "🎲 Acak (Bervariasi Tiap Lembar)";
-      subjectSelect.appendChild(optRandom);
-
-      list.forEach((subj) => {
-        const opt = document.createElement("option");
-        opt.value = subj;
-        opt.textContent = subj;
-        subjectSelect.appendChild(opt);
-      });
-    }
-
-    function setStatus(type, msg) {
-      const container = document.getElementById("statusContainer");
-      if (!container) return;
-      if (type === "loading") {
-        container.innerHTML = `
-          <div class="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl text-indigo-900 text-xs font-semibold flex items-center gap-3">
-            <div class="spinner" style="width:20px;height:20px;border-width:2.5px;"></div>
-            <span>${msg}</span>
-          </div>
-        `;
-      } else if (type === "error") {
-        container.innerHTML = `
-          <div class="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-900 text-xs font-medium leading-relaxed">
-            ${msg}
-          </div>
-        `;
-      } else {
-        container.innerHTML = `
-          <div class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 text-xs font-semibold">
-            ${msg}
-          </div>
-        `;
-      }
-    }
-
-    function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-
-    async function downloadWorksheetsPDF() {
-      const output = document.getElementById("output");
-      if (!output || !output.children.length) {
-        setStatus("error", "⚠️ Belum ada worksheet untuk diunduh! Silakan klik tombol 'Buat Lembar Kerja Siswa' terlebih dahulu.");
-        return;
-      }
-
-      const opt = {
-        margin: [8, 6, 8, 6],
-        filename: `WorksheetGenius_A4_${Date.now()}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['css', 'legacy'] }
-      };
-
-      setStatus("loading", "⏳ Sedang merender dokumen PDF A4 beresolusi tinggi... Mohon tunggu sebentar.");
-      try {
-        await html2pdf().set(opt).from(output).save();
-        setStatus("success", "✅ Berhasil mendownload PDF A4 lengkap dengan lembar kunci jawaban terpisah!");
-      } catch (err) {
-        console.error("PDF generation failed:", err);
-        setStatus("error", `❌ Gagal membuat PDF: ${err.message}. Anda juga dapat menekan Ctrl+P (Print) lalu pilih Simpan sebagai PDF.`);
-      }
-    }
-
-    async function callBackendImage(promptText, aspectRatio = "3:4") {
-      const customBackend = localStorage.getItem('ws_backend_custom_url');
-      const isLocalOrigin = window.location.protocol.startsWith('http') && !window.location.host.includes('googleusercontent');
-      const apiKey = getSavedApiKey();
-
-      const safePrompt = promptText
-        .replace(/\bdisney princess\b/gi, "charming royal storybook fairytale princess")
-        .replace(/\bdisney\b/gi, "whimsical storybook cartoon")
-        .replace(/\bpixar superhero\b/gi, "cute 3D CGI animated superhero kid")
-        .replace(/\bpixar\b/gi, "cute 3D CGI family animation style")
-        .trim();
-
-      // 1. Coba lewat backend Vercel terlebih dahulu
-      if (customBackend || isLocalOrigin || isCloudHosted()) {
-        const targetUrl = getBackendEndpoint('/api/generate-image');
-        try {
-          const response = await fetch(targetUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': apiKey
-            },
-            body: JSON.stringify({ prompt: safePrompt, aspectRatio: aspectRatio, apiKey: apiKey })
-          });
-
-          if (response.ok) {
-            const resData = await response.json();
-            if (resData.imageUrl) return resData.imageUrl;
-          } else {
-            console.warn("Backend Vercel response non-200, beralih ke Direct Nano Banana call...");
-          }
-        } catch (err) {
-          console.warn('Backend Vercel gagal dihubungi, beralih ke Direct Nano Banana...', err);
-        }
-      }
-
-      // 2. Direct Nano Banana Call dari browser (persis seperti versi komputer yang lancar)
-      if (!apiKey) {
-        throw new Error(
-          "Kunci Gemini API Key diperlukan untuk melukis dengan Nano Banana. " +
-          "Silakan klik tombol <strong>⚙️ Koneksi AI</strong> di kanan atas dan masukkan API Key Anda."
-        );
-      }
-
-      // Gunakan nama model resmi gemini-2.5-flash-image (bukan -preview-)
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`;
-      const payload = {
-        contents: [{ role: 'user', parts: [{ text: safePrompt }] }],
-        generationConfig: {
-          responseModalities: ['IMAGE'],
-          imageConfig: { aspectRatio: aspectRatio }
-        }
-      };
-
-      const res = await fetch(apiUrl, {
+    try {
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
 
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`[Google Nano Banana HTTP ${res.status}] ${errText}`);
-      }
-
-      const data = await res.json();
-      const part = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
-      if (part && part.inlineData?.data) {
-        return `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
-      }
-
-      throw new Error("Gambar tidak dapat dibuat oleh Google Gemini Nano Banana.");
-    }
-
-    async function fetchBackendWorksheet(systemPrompt) {
-      const customBackend = localStorage.getItem('ws_backend_custom_url');
-      const isLocalOrigin = window.location.protocol.startsWith('http') && !window.location.host.includes('googleusercontent');
-      let backendErrorMsg = null;
-
-      if (customBackend || isLocalOrigin || isCloudHosted()) {
-        const targetUrl = getBackendEndpoint('/api/generate-worksheet');
-        try {
-          const response = await fetch(targetUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ systemPrompt: systemPrompt })
-          });
-
-          if (response.ok) {
-            const resData = await response.json();
-            if (resData.data) return resData.data;
-          } else {
-            const errJson = await response.json().catch(() => ({}));
-            backendErrorMsg = errJson.error || `Serverless status ${response.status}`;
-          }
-        } catch (err) {
-          backendErrorMsg = err.message;
+      if (response.ok) {
+        const result = await response.json();
+        const part = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+        if (part && part.inlineData?.data) {
+          const dataUrl = `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
+          return res.status(200).json({ success: true, imageUrl: dataUrl, source: 'gemini-nano-banana' });
         }
       }
-
-      const apiKey = getSavedApiKey();
-      if (!apiKey) {
-        throw new Error(
-          (backendErrorMsg ? `⚠️ Serverless Cloud Error: ${backendErrorMsg}<br>` : '') +
-          "Kunci <code>GEMINI_API_KEY</code> belum aktif di dashboard Vercel.<br>" +
-          "<strong>Solusi Cepat:</strong> Klik tombol <strong>⚙️ Koneksi AI</strong> di kanan atas, tempelkan API Key Anda, lalu klik <strong>💾 Simpan Konfigurasi</strong>."
-        );
-      }
-
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-      const payload = {
-        contents: [{ role: "user", parts: [{ text: systemPrompt }] }],
-        generationConfig: {
-          responseMimeType: "application/json",
-          temperature: 0.7
-        }
-      };
-
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(`Google API Error: [HTTP ${response.status}] ${errText}`);
-      }
-
-      const data = await response.json();
-      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      let clean = (rawText || "").trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/i, "");
-      return JSON.parse(clean);
+    } catch (err) {
+      console.warn('Gemini 2.5 Flash Image failed, falling back...', err.message);
     }
-
-    function buildProductionSystemPrompt(level, subject, difficulty, index) {
-      const isLiteracyTextSubject = subject.toLowerCase().includes("literasi") || 
-                                    subject.toLowerCase().includes("bacaan") || 
-                                    (subject.toLowerCase().includes("inggris") && !subject.toLowerCase().includes("grammar"));
-
-      return `Role: Tim Ahli Asesmen Pembelajaran Kurikulum Merdeka Indonesia.
-Tugas: Buat Lembar Kerja Peserta Didik (LKPD) Lengkap.
-Jenjang: ${level.toUpperCase()}
-Mata Pelajaran: ${subject}
-Tingkat Kesulitan: ${difficulty}
-Lembar Ke: #${index}
-
-ATURAN KONTEKS STIMULUS (readingPassage):
-- JIKA mata pelajaran adalah Matematika, Eksakta, Sains/IPA, Fisika, Kimia, Tata Bahasa, atau konsep langsung: JANGAN buat teks pengantar/esai panjang! Berikan nilai "readingPassage": null agar soal langsung tampil ringkas dan fokus.
-- HANYA sertakan teks "readingPassage" JIKA dan HANYA JIKA topik memerlukan stimulus pemahaman bacaan literasi (${isLiteracyTextSubject ? 'YA, sertakan teks 2-3 paragraf' : 'TIDAK, set null'}).
-
-SYARAT STRUKTURAL:
-1. Output WAJIB berupa JSON MURNI (tanpa markdown tambahan).
-2. Buat TEPAT 10 butir pertanyaan (nomor 1 sampai 10):
-   - Soal 1-8: Pilihan Ganda berkualitas dengan options ["A. ...", "B. ...", "C. ...", "D. ..."].
-   - Soal 9-10: Uraian / Isian bernalar dengan options kosong [].
-3. Sertakan kunci jawaban dan rubrik jelas untuk setiap nomor.
-
-Format Output JSON:
-{
-  "title": "Judul Lembar Kerja Edukatif",
-  "objective": "Tujuan Pembelajaran Kurikulum Merdeka",
-  "instructions": "Petunjuk pengerjaan bagi peserta didik",
-  "readingPassage": ${isLiteracyTextSubject ? '"Teks bacaan narasi pendek..."' : 'null'},
-  "questions": [
-    { "id": 1, "prompt": "Soal nomor 1...", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "answer": "A" },
-    { "id": 10, "prompt": "Soal uraian nomor 10...", "options": [], "answer": "Rubrik penilaian..." }
-  ]
-}`;
-    }
-
-    const toddlerColoringThemes = [
-      {
-        name: "Putri Kerajaan Ceria",
-        easy: "coloring book page, single cute smiling little fairytale princess waving, clean pure white background, thick outlines, vector line art",
-        medium: "coloring book page, cute smiling little fairytale princess holding a star wand beside a tulip flower, pure white background, line art",
-        hard: "coloring book page, cute smiling little fairytale princess in cartoon palace hall with simple pillars and stars, bold line art"
-      },
-      {
-        name: "Pahlawan Super Cilik",
-        easy: "coloring book page, single cute smiling toddler superhero kid wearing cape and mask, pure white background, thick clean lines",
-        medium: "coloring book page, cute smiling toddler superhero kid in cape next to one cartoon star, pure white background, line art",
-        hard: "coloring book page, cute smiling toddler superhero kid on cartoon rooftop with skyscraper outlines, clean line art"
-      },
-      {
-        name: "Astronot Cilik di Angkasa",
-        easy: "coloring book page, single cute chubby toddler astronaut waving in simple bubble helmet, pure white background, bold outlines",
-        medium: "coloring book page, cute chubby toddler astronaut next to smiling crescent moon, pure white background, clean line art",
-        hard: "coloring book page, cute chubby toddler astronaut floating with cartoon stars and ringed planet, clean bold line art"
-      },
-      {
-        name: "Sahabat Putri Duyung",
-        easy: "coloring book page, single cute smiling cartoon little mermaid girl swimming, pure white background, bold outlines",
-        medium: "coloring book page, cute smiling cartoon mermaid girl on rock next to starfish, pure white background, line art",
-        hard: "coloring book page, cute smiling cartoon mermaid girl swimming next to friendly dolphin with coral plants, clean line art"
-      },
-      {
-        name: "Kelinci Manis di Kebun",
-        easy: "coloring book page, single adorable chubby baby bunny holding giant carrot, pure white background, bold line art",
-        medium: "coloring book page, adorable chubby baby bunny next to watering can and sunflower, pure white background, line art",
-        hard: "coloring book page, adorable chubby baby bunny in simple garden with picket fence and carrots, clean outlines"
-      }
-    ];
-
-    const spotDiffAiThemes = [
-      {
-        title: "Toko Roti Beruang Koki",
-        subjectPrompt: "two side by side panels spot the difference puzzle, cheerful baby bear wearing chef hat behind a bakery counter with cupcakes, colorful 3D cartoon",
-        diffDefs: [
-          "[Warna] Topi koki beruang: Putih di Gambar A berganti menjadi merah di Gambar B",
-          "[Bentuk] Hiasan kue: Ceri bulat di Gambar A berganti menjadi bintang di Gambar B",
-          "[Posisi] Sendok kayu: Dipegang tangan di Gambar A berganti diletakkan di atas meja di Gambar B",
-          "[Warna] Celemek beruang: Biru muda di Gambar A berganti menjadi kuning cerah di Gambar B",
-          "[Bentuk] Saku celemek: Kotak di Gambar A berganti menjadi saku bentuk hati di Gambar B"
-        ]
-      },
-      {
-        title: "Kelinci Manis di Kebun Ceria",
-        subjectPrompt: "two side by side panels spot the difference puzzle, adorable baby bunny in gardener apron holding a carrot with butterfly and flowers, colorful 3D cartoon",
-        diffDefs: [
-          "[Warna] Kupu-kupu: Sayap biru di Gambar A berganti menjadi kuning di Gambar B",
-          "[Bentuk] Pita di telinga: Pita kupu-kupu di Gambar A berganti jadi bintang di Gambar B",
-          "[Posisi] Wortel di tanah: Sebelah kiri di Gambar A berpindah ke sebelah kanan di Gambar B",
-          "[Warna] Bunga di tanah: Merah muda di Gambar A berganti menjadi ungu di Gambar B",
-          "[Bentuk] Daun wortel: 3 helai di Gambar A berganti menjadi 2 helai melengkung di Gambar B"
-        ]
-      },
-      {
-        title: "Astronot Cilik di Bulan",
-        subjectPrompt: "two side by side panels spot the difference puzzle, cute toddler astronaut on moon surface next to smiling star and planet, colorful 3D cartoon",
-        diffDefs: [
-          "[Warna] Bendera di bulan: Merah di Gambar A berganti menjadi hijau cerah di Gambar B",
-          "[Bentuk] Antena helm: Bulat di Gambar A berganti menjadi bentuk bintang di Gambar B",
-          "[Posisi] Bintang ceria: Di kiri atas di Gambar A berpindah ke kanan di Gambar B",
-          "[Warna] Garis baju astronot: Biru di Gambar A berganti menjadi oranye di Gambar B",
-          "[Bentuk] Lambang dada: Bentuk petir di Gambar A berganti menjadi hati di Gambar B"
-        ]
-      }
-    ];
-
-    const creativeIconCategories = [
-      {
-        category: "Kue & Manisan Toko Roti",
-        items: ["🍩 Donat Cokelat", "🧁 Cupcake Stroberi", "🍪 Kukis Ceria", "🍰 Irisan Kue Tart", "🍭 Permen Lolipop", "🍦 Es Krim Pelangi"]
-      },
-      {
-        category: "Hewan Rimba Lucu",
-        items: ["🦁 Singa Ramah", "🐼 Panda Gemas", "🦊 Rubah Cerdik", "🐨 Koala Manis", "🐯 Harimau Cilik", "🐵 Monyet Ceria"]
-      },
-      {
-        category: "Dunia Laut Penuh Warna",
-        items: ["🐳 Paus Biru", "🐙 Gurita Ungu", "🦀 Kepiting Riang", "🐢 Penyu Laut", "🐠 Ikan Tropis", "⭐ Bintang Laut"]
-      },
-      {
-        category: "Ekspedisi Luar Angkasa",
-        items: ["🚀 Roket Cepat", "🪐 Planet Saturnus", "🛸 Piring Terbang", "⭐ Bintang Berkilau", "🌙 Bulan Sabit", "☄️ Komet Meluncur"]
-      },
-      {
-        category: "Dunia Dinosaurus & Alam",
-        items: ["🦖 T-Rex Lucu", "🦕 Bronto Leher Panjang", "🥚 Telur Dino", "🌴 Pohon Palem", "🌋 Gunung Bersahabat", "🌿 Daun Purba"]
-      },
-      {
-        category: "Kendaraan & Transportasi",
-        items: ["🚗 Mobil Balap", "✈️ Pesawat Terbang", "🚂 Kereta Api", "⛵ Perahu Layar", "🚁 Helikopter", "🚲 Sepeda Ceria"]
-      }
-    ];
-
-    function getDifficultyBadgeClass(diff) {
-      if (diff.includes("Mudah")) return "diff-mudah";
-      if (diff.includes("Sulit") || diff.includes("HOTS")) return "diff-sulit";
-      return "diff-sedang";
-    }
-
-    function createDedicatedAnswerKeyPage(title, subtitle, contentList, badge = "KUNCI JAWABAN & PANDUAN PENDIDIK", difficulty = "Sedang") {
-      const page = document.createElement("div");
-      page.className = "ws-page ws-answer-page";
-
-      let itemsHTML = contentList.map((item, idx) => `
-        <div class="answer-key-item">
-          <div class="answer-key-num">${idx + 1}</div>
-          <div style="flex:1;">${item}</div>
-        </div>
-      `).join("");
-
-      page.innerHTML = `
-        <div style="text-align: center; border-bottom: 2px dashed #a78bfa; padding-bottom: 14px; margin-bottom: 16px;">
-          <div class="diff-pill ${getDifficultyBadgeClass(difficulty)}">
-            <span>🎯</span> TINGKAT KESULITAN: ${difficulty.toUpperCase()}
-          </div>
-          <div><span class="answer-key-badge">🔑 ${badge}</span></div>
-          <h2 style="font-size: 1.55rem; color: #5b21b6; margin: 6px 0 2px 0;">${title}</h2>
-          <p style="font-size: 0.95rem; color: #6b7280; font-weight: 600;">${subtitle}</p>
-        </div>
-
-        <div class="answer-key-card">
-          <div style="font-weight: 800; color: #4c1d95; margin-bottom: 8px; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
-            <span>📋</span> Rincian Jawaban Benar & Pembahasan:
-          </div>
-          ${itemsHTML}
-        </div>
-
-        <div style="margin-top: 24px; padding: 14px 18px; background: #ede9fe; border-radius: 12px; font-size: 0.92rem; color: #4c1d95; line-height: 1.6;">
-          <strong>💡 Panduan Guru / Orang Tua:</strong> Lembar ini khusus untuk pendidik dalam mencocokkan hasil kerja anak. Berikan apresiasi berupa stiker bintang atau senyuman atas setiap usaha pengerjaan mandiri siswa!
-        </div>
-
-        <div class="tk-footer" style="margin-top: 30px;">✨ WorksheetGenius ID • Kurikulum Merdeka AI ✨</div>
-      `;
-
-      return page;
-    }
-
-    async function renderPaudTkLiveAI(activityType, selectedTheme, index, assignedThemeObj, difficulty) {
-      const page = document.createElement("div");
-      page.className = "ws-page ws-paud-tk";
-      let answerPage = null;
-
-      if (activityType === "mewarnai") {
-        const chosenTheme = assignedThemeObj || toddlerColoringThemes[(index - 1) % toddlerColoringThemes.length];
-        const themeTitle = chosenTheme.name;
-
-        let promptDesc = chosenTheme.medium;
-        let diffInstruction = "Warnai karakter dan hiasannya dengan rapi!";
-        if (difficulty === "Mudah") {
-          promptDesc = chosenTheme.easy;
-          diffInstruction = "Bidang luas untuk krayon! Warnai karakternya dengan ceria!";
-        } else if (difficulty === "Sulit") {
-          promptDesc = chosenTheme.hard;
-          diffInstruction = "Tantangan Mewarnai Lengkap! Warnai karakter beserta seluruh latar belakangnya!";
-        }
-
-        const coloringPrompt = `Clean vector-style coloring book page for young children.
-Subject: ${promptDesc}.
-Art Style: Thick bold clean black outlines, large enclosed clear areas to color, completely pure white background.
-Negative prompt: mechanical clutter, hoses, wires, micro-buttons, realistic shading, cross-hatching, grayscale, gradient. Aspect ratio: 3:4.`;
-
-        page.innerHTML = `
-          <div class="tk-banner-wrap">
-            <div class="diff-pill ${getDifficultyBadgeClass(difficulty)}">
-              <span>🎯</span> TINGKAT KESULITAN: ${difficulty.toUpperCase()}
-            </div>
-            <div class="tk-banner">
-              <h2>BELAJAR MEWARNAI</h2>
-            </div>
-          </div>
-
-          <div class="tk-student-info">
-            <span>Nama: _______________________________</span>
-            <span>Usia/Kelas: _________________</span>
-          </div>
-
-          <div class="tk-instruction-pill">
-            <span>🖍️</span> TEMA: ${themeTitle.toUpperCase()}! ${diffInstruction}
-          </div>
-
-          <div class="ai-image-frame ai-coloring-frame" id="coloringFrame_${index}">
-            <div class="ai-loading-box" id="loading_${index}">
-              <div class="spinner"></div>
-              <span>Sedang melukis gambar mewarnai ${themeTitle} (${difficulty})...</span>
-            </div>
-            <img id="coloringImg_${index}" class="ai-generated-img" alt="Coloring Page" style="display:none;">
-          </div>
-
-          <div class="tk-footer">✨ WorksheetGenius ID • Kurikulum Merdeka AI ✨</div>
-        `;
-
-        setTimeout(async () => {
-          const img = page.querySelector(`#coloringImg_${index}`);
-          const loader = page.querySelector(`#loading_${index}`);
-          try {
-            const dataUrl = await callBackendImage(coloringPrompt, "3:4");
-            if (img && loader) {
-              img.src = dataUrl;
-              loader.style.display = "none";
-              img.style.display = "block";
-            }
-          } catch (err) {
-            if (loader) {
-              loader.innerHTML = `
-                <div style="color:#b91c1c; padding:20px; font-size:0.92rem; line-height:1.5;">
-                  <strong>❌ Info Gambar AI:</strong><br>
-                  <div style="font-size:0.82rem; background:#fee2e2; padding:10px 14px; border-radius:8px; display:inline-block; margin-top:8px; text-align:left;">
-                    ${err.message}
-                  </div>
-                </div>
-              `;
-            }
-          }
-        }, 50);
-
-        answerPage = createDedicatedAnswerKeyPage(
-          `Rubrik Penilaian: Belajar Mewarnai (${themeTitle})`,
-          `Lembar #${index} • Panduan Observasi Perkembangan Motorik Halus`,
-          [
-            `<strong>Kerapian Garis (Motorik Halus):</strong> Apakah anak mewarnai di dalam bidang garis luar tanpa keluar berlebihan? (Skor 1-4)`,
-            `<strong>Eksplorasi Warna (Kreativitas):</strong> Keberanian anak memadukan krayon pada karakter dan hiasannya.`,
-            `<strong>Daya Tahan & Fokus:</strong> Ketekunan menyelesaikan gambar hingga tuntas secara mandiri.`
-          ],
-          "PANDUAN OBSERVASI GURU / ORANG TUA",
-          difficulty
-        );
-
-        return { studentPage: page, answerPage: answerPage };
-      }
-      else if (activityType === "perbedaan") {
-        let diffCount = difficulty === "Mudah" ? 3 : (difficulty === "Sulit" ? 6 : 4);
-        const sceneObj = spotDiffAiThemes[(index - 1) % spotDiffAiThemes.length];
-        const sceneTitle = sceneObj.title;
-        const activeDiffs = sceneObj.diffDefs.slice(0, diffCount);
-
-        const spotDiffPrompt = `${sceneObj.subjectPrompt}. Side by side comparison with ${diffCount} differences. Clean cute colorful 3D style.`;
-
-        page.innerHTML = `
-          <div class="tk-banner-wrap">
-            <div class="diff-pill ${getDifficultyBadgeClass(difficulty)}">
-              <span>🎯</span> TINGKAT KESULITAN: ${difficulty.toUpperCase()}
-            </div>
-            <div class="tk-banner">
-              <h2>CARI PERBEDAAN</h2>
-            </div>
-          </div>
-
-          <div class="tk-student-info">
-            <span>Nama: _______________________________</span>
-            <span>Usia/Kelas: _________________</span>
-          </div>
-
-          <div class="tk-instruction-pill">
-            <span>🎯</span> TEMA: ${sceneTitle.toUpperCase()}! Temukan ${diffCount} perbedaan di Gambar B!
-          </div>
-
-          <div class="ai-image-frame ai-diff-frame" id="diffFrame_${index}">
-            <div class="ai-loading-box" id="diffLoading_${index}">
-              <div class="spinner"></div>
-              <span>Sedang melukis panel gambar cari perbedaan...</span>
-            </div>
-            <img id="diffImg_${index}" class="ai-generated-img" alt="Spot The Difference" style="display:none;">
-          </div>
-
-          <div style="text-align: center; color: #475569; font-size: 0.95rem; margin-top: 8px; font-weight: 600;">
-            ✏️ Lingkarilah dengan pensil setiap benda yang berbeda pada Gambar B!
-          </div>
-
-          <div class="tk-footer">✨ WorksheetGenius ID • Kurikulum Merdeka AI ✨</div>
-        `;
-
-        setTimeout(async () => {
-          const img = page.querySelector(`#diffImg_${index}`);
-          const loader = page.querySelector(`#diffLoading_${index}`);
-          try {
-            const dataUrl = await callBackendImage(spotDiffPrompt, "4:3");
-            if (img && loader) {
-              img.src = dataUrl;
-              loader.style.display = "none";
-              img.style.display = "block";
-            }
-          } catch (err) {
-            if (loader) {
-              loader.innerHTML = `
-                <div style="color:#b91c1c; padding:20px; font-size:0.92rem; line-height:1.5;">
-                  <strong>❌ Info Gambar AI:</strong><br>
-                  <div style="font-size:0.82rem; background:#fee2e2; padding:10px 14px; border-radius:8px; display:inline-block; margin-top:8px; text-align:left;">
-                    ${err.message}
-                  </div>
-                </div>
-              `;
-            }
-          }
-        }, 50);
-
-        answerPage = createDedicatedAnswerKeyPage(
-          `Kunci Jawaban: Cari Perbedaan (${sceneTitle})`,
-          `Lembar #${index} • Tepat ${diffCount} Perbedaan`,
-          activeDiffs.map(d => `<strong>${d}</strong>`),
-          "KUNCI JAWABAN GURU",
-          difficulty
-        );
-
-        return { studentPage: page, answerPage: answerPage };
-      }
-      else if (activityType === "pola") {
-        const catIdx = (index - 1) % creativeIconCategories.length;
-        const currentCategory = creativeIconCategories[catIdx];
-        const categoryName = currentCategory.category;
-        const items = [...currentCategory.items].sort(() => 0.5 - Math.random());
-
-        const patternConfigs = [
-          { a: items[0].split(" ")[0], b: items[1].split(" ")[0], desc: `${items[0]} dan ${items[1]}` },
-          { a: items[2].split(" ")[0], b: items[3].split(" ")[0], desc: `${items[2]} dan ${items[3]}` },
-          { a: items[4].split(" ")[0], b: items[5].split(" ")[0], desc: `${items[4]} dan ${items[5]}` },
-          { a: items[1].split(" ")[0], b: items[4].split(" ")[0], desc: `${items[1]} dan ${items[4]}` }
-        ];
-
-        let patternHTML = "";
-        let answersLog = [];
-
-        patternConfigs.forEach((cfg, pIdx) => {
-          const seq = [cfg.a, cfg.b, cfg.a, cfg.b];
-          const correctAnswer = cfg.a;
-          const distractors = [cfg.a, cfg.b, items[3].split(" ")[0]];
-          const shuffledOpts = [...new Set(distractors)].sort(() => 0.5 - Math.random());
-
-          answersLog.push(`Baris #${pIdx + 1}: Simbol yang benar untuk tanda tanya adalah <strong>${correctAnswer}</strong> (${cfg.desc})`);
-
-          patternHTML += `
-            <div class="pattern-row">
-              <div class="pattern-num">${pIdx + 1}</div>
-              <div class="pattern-sequence">
-                <span>${seq[0]}</span> <span>${seq[1]}</span> <span>${seq[2]}</span> <span>${seq[3]}</span>
-                <div class="pattern-q-box">?</div>
-              </div>
-              <div class="pattern-options-divider"></div>
-              <div class="pattern-options-group">
-                ${shuffledOpts.map(opt => `<div class="pattern-opt-box">${opt}</div>`).join("")}
-              </div>
-            </div>
-          `;
-        });
-
-        page.innerHTML = `
-          <div class="tk-banner-wrap">
-            <div class="diff-pill ${getDifficultyBadgeClass(difficulty)}">
-              <span>🎯</span> TINGKAT KESULITAN: ${difficulty.toUpperCase()}
-            </div>
-            <div class="tk-banner">
-              <h2>IKUTI POLANYA</h2>
-            </div>
-          </div>
-          <div class="tk-student-info">
-            <span>Nama: _______________________________</span>
-            <span>Usia/Kelas: _________________</span>
-          </div>
-          <div class="tk-instruction-pill">
-            <span>👀</span> TEMA: ${categoryName.toUpperCase()}! Perhatikan polanya lalu lingkari gambar yang tepat di sebelah kanan!
-          </div>
-          ${patternHTML}
-          <div class="tk-footer">✨ WorksheetGenius ID • Kurikulum Merdeka AI ✨</div>
-        `;
-
-        answerPage = createDedicatedAnswerKeyPage(
-          `Kunci Jawaban: Ikuti Polanya (${categoryName})`,
-          `Lembar #${index} • Pola Karakter Ceria`,
-          answersLog,
-          "KUNCI JAWABAN GURU",
-          difficulty
-        );
-
-        return { studentPage: page, answerPage: answerPage };
-      }
-      else if (activityType === "tarikGaris") {
-        const matchingThemesPool = [
-          {
-            themeTitle: "Hewan Sahabat & Makanan Favoritnya",
-            pairs: [
-              { left: "🐰 Kelinci Lucu", right: "🥕 Wortel Segar" },
-              { left: "🐱 Kucing Manis", right: "🐟 Ikan Lezat" },
-              { left: "🐮 Sapi Gemuk", right: "🌿 Rumput Segar" },
-              { left: "🐵 Monyet Ceria", right: "🍌 Pisang Manis" }
-            ]
-          },
-          {
-            themeTitle: "Profesi Hebat & Peralatan Kerjanya",
-            pairs: [
-              { left: "👨‍🍳 Koki Restoran", right: "🍳 Wajan & Spatula" },
-              { left: "👩‍⚕️ Dokter Ramah", right: "🩺 Stetoskop Medis" },
-              { left: "🎨 Pelukis Cilik", right: "🖌️ Kuas & Palet Cat" },
-              { left: "👨‍🚒 Pemadam Kebakaran", right: "🚒 Selang Pemadam" }
-            ]
-          }
-        ];
-
-        const selectedPool = matchingThemesPool[(index - 1) % matchingThemesPool.length];
-        const selectedPairs = selectedPool.pairs;
-        const shuffledRight = [...selectedPairs].sort(() => 0.5 - Math.random());
-
-        page.innerHTML = `
-          <div class="tk-banner-wrap">
-            <div class="diff-pill ${getDifficultyBadgeClass(difficulty)}">
-              <span>🎯</span> TINGKAT KESULITAN: ${difficulty.toUpperCase()}
-            </div>
-            <div class="tk-banner">
-              <h2>TARIK GARIS PASANGAN</h2>
-            </div>
-          </div>
-          <div class="tk-student-info">
-            <span>Nama: _______________________________</span>
-            <span>Usia/Kelas: _________________</span>
-          </div>
-          <div class="tk-instruction-pill">
-            <span>✏️</span> TEMA: ${selectedPool.themeTitle.toUpperCase()}! Tarik garis dari sisi kiri ke pasangan yang sesuai di sisi kanan!
-          </div>
-          <div class="match-table">
-            <div class="match-col">
-              ${selectedPairs.map(p => `
-                <div class="match-card">
-                  <span>${p.left}</span>
-                  <div class="match-dot"></div>
-                </div>
-              `).join("")}
-            </div>
-            <div class="match-col">
-              ${shuffledRight.map(p => `
-                <div class="match-card">
-                  <div class="match-dot"></div>
-                  <span>${p.right}</span>
-                </div>
-              `).join("")}
-            </div>
-          </div>
-          <div class="tk-footer">✨ WorksheetGenius ID • Kurikulum Merdeka AI ✨</div>
-        `;
-
-        answerPage = createDedicatedAnswerKeyPage(
-          `Kunci Jawaban: Tarik Garis (${selectedPool.themeTitle})`,
-          `Lembar #${index} • Pasangan Tepat`,
-          selectedPairs.map(p => `Pasangan: <strong>${p.left}</strong> berpasangan dengan <strong>${p.right}</strong>`),
-          "KUNCI JAWABAN GURU",
-          difficulty
-        );
-
-        return { studentPage: page, answerPage: answerPage };
-      }
-      else {
-        const catIdx = (index - 1) % creativeIconCategories.length;
-        const currentCategory = creativeIconCategories[catIdx];
-        const poolItems = currentCategory.items;
-
-        const countItems = [
-          { name: poolItems[0], icon: poolItems[0].split(" ")[0], count: 3 },
-          { name: poolItems[1], icon: poolItems[1].split(" ")[0], count: 5 },
-          { name: poolItems[2], icon: poolItems[2].split(" ")[0], count: 2 },
-          { name: poolItems[3], icon: poolItems[3].split(" ")[0], count: 4 }
-        ];
-
-        let rowsHTML = "";
-        let answersLog = [];
-
-        countItems.forEach((c, idx) => {
-          let icons = Array(c.count).fill(c.icon).join(" ");
-          answersLog.push(`Baris #${idx + 1}: Jumlah objek <strong>${c.name}</strong> = <strong>${c.count}</strong> buah`);
-
-          rowsHTML += `
-            <div class="pattern-row" style="padding: 16px 20px;">
-              <div class="pattern-num">${idx + 1}</div>
-              <div style="font-size: 2.3rem; flex: 1; letter-spacing: 4px;">${icons}</div>
-              <div style="display:flex; align-items:center; gap:14px;">
-                <span style="font-size: 1.15rem; font-weight:700; color:#0284c7;">Ada berapa?</span>
-                <div class="pattern-q-box" style="border-style: solid; border-color:#0284c7; background:#fff; font-size:1.6rem;"></div>
-              </div>
-            </div>
-          `;
-        });
-
-        page.innerHTML = `
-          <div class="tk-banner-wrap">
-            <div class="diff-pill ${getDifficultyBadgeClass(difficulty)}">
-              <span>🎯</span> TINGKAT KESULITAN: ${difficulty.toUpperCase()}
-            </div>
-            <div class="tk-banner">
-              <h2>MENGHITUNG CERIA</h2>
-            </div>
-          </div>
-          <div class="tk-student-info">
-            <span>Nama: _______________________________</span>
-            <span>Usia/Kelas: _________________</span>
-          </div>
-          <div class="tk-instruction-pill">
-            <span>🧮</span> TEMA: ${currentCategory.category.toUpperCase()}! Hitung jumlah setiap gambar lalu tulis angkanya di dalam kotak!
-          </div>
-          ${rowsHTML}
-          <div class="tk-footer">✨ WorksheetGenius ID • Kurikulum Merdeka AI ✨</div>
-        `;
-
-        answerPage = createDedicatedAnswerKeyPage(
-          `Kunci Jawaban: Menghitung Ceria (${currentCategory.category})`,
-          `Lembar #${index} • Kunci Hitungan`,
-          answersLog,
-          "KUNCI JAWABAN GURU",
-          difficulty
-        );
-
-        return { studentPage: page, answerPage: answerPage };
-      }
-    }
-
-    function renderWorksheet(level, data, subject, index, difficulty) {
-      const page = document.createElement("div");
-      const isSD = level === "sd";
-      page.className = `ws-page ${isSD ? 'ws-sd' : 'ws-smp-sma'}`;
-
-      let readingBoxHTML = "";
-      if (data.readingPassage && data.readingPassage.trim().length > 20) {
-        readingBoxHTML = `
-          <div class="reading-passage-box">
-            <div class="reading-passage-header">
-              <span>📖</span> Teks Bacaan / Narasi Literasi
-            </div>
-            <div class="reading-passage-text">${data.readingPassage}</div>
-          </div>
-        `;
-      }
-
-      let questionsHTML = "";
-      let answerList = [];
-
-      (data.questions || []).forEach((q) => {
-        let optionsHTML = "";
-        if (q.options && q.options.length > 0) {
-          optionsHTML = `
-            <div class="q-options">
-              ${q.options.map(opt => `<div>${opt}</div>`).join('')}
-            </div>
-          `;
-        } else {
-          optionsHTML = `
-            <div style="border-bottom: 1.5px dashed #94a3b8; height: 32px; margin-top: 8px; width: 100%;"></div>
-            <div style="border-bottom: 1.5px dashed #94a3b8; height: 32px; margin-top: 6px; width: 100%;"></div>
-          `;
-        }
-
-        questionsHTML += `
-          <div class="q-item">
-            <strong>${q.id}.</strong> ${q.prompt}
-            ${optionsHTML}
-          </div>
-        `;
-
-        answerList.push(`<strong>Nomor ${q.id}:</strong> ${q.answer || 'Pedoman rubrik penilaian guru.'}`);
-      });
-
-      page.innerHTML = `
-        <div class="ws-header">
-          <div>
-            <div class="diff-pill ${getDifficultyBadgeClass(difficulty)}">
-              <span>🎯</span> TINGKAT KESULITAN: ${difficulty.toUpperCase()}
-            </div>
-            <div class="ws-title">${data.title || subject}</div>
-            <div style="font-size: 0.92rem; color: #475569; margin-top: 2px;">
-              Kurikulum Merdeka AI • ${subject} • Lembar #${index}
-            </div>
-          </div>
-          <div style="border: 2px solid ${isSD ? '#3b82f6' : '#000'}; padding: 6px 16px; border-radius: 8px; font-weight: bold; font-size:0.9rem;">
-            NILAI
-          </div>
-        </div>
-
-        <div class="ws-student-info">
-          <span>Nama Lengkap : ________________________________</span>
-          <span>Kelas / No : __________________</span>
-        </div>
-
-        <div class="ws-instructions">
-          <strong>📌 Capaian Pembelajaran:</strong> ${data.objective || 'Mencapai kompetensi pembelajaran standar.'}<br>
-          <strong>💡 Petunjuk Pengerjaan:</strong> ${data.instructions || 'Kerjakanlah dengan teliti dan mandiri.'}
-        </div>
-
-        ${readingBoxHTML}
-
-        <div class="questions-list">
-          ${questionsHTML}
-        </div>
-
-        <div class="tk-footer" style="margin-top: 28px;">
-          ✨ WorksheetGenius ID • Kurikulum Merdeka AI ✨
-        </div>
-      `;
-
-      const answerPage = createDedicatedAnswerKeyPage(
-        `KUNCI JAWABAN: ${data.title || subject}`,
-        `Jenjang: ${level.toUpperCase()} • Mata Pelajaran: ${subject} • Lembar #${index}`,
-        answerList,
-        "KUNCI JAWABAN & PEMBAHASAN",
-        difficulty
-      );
-
-      return { studentPage: page, answerPage: answerPage };
-    }
-
-    async function generateWorksheetsAI() {
-      const btn = document.getElementById("btnGenerate");
-      const level = document.getElementById("jenjang").value;
-      const formSubject = document.getElementById("subject").value;
-      const count = parseInt(document.getElementById("count").value) || 1;
-      const formDifficulty = document.getElementById("difficulty").value;
-      const formTheme = document.getElementById("theme").value;
-      const output = document.getElementById("output");
-
-      if (btn) btn.disabled = true;
-      output.innerHTML = "";
-      setStatus("loading", `🚀 Menghubungkan ke layanan AI... Mempersiapkan ${count} lembar kerja untuk jenjang ${level.toUpperCase()}...`);
-
-      const availableSubjects = subjectMapping[level] || [];
-      const difficultiesList = ["Mudah", "Sedang", "Sulit"];
-      const paudActivities = ["mewarnai", "perbedaan", "pola", "tarikGaris", "counting"];
-      const shuffledThemes = [...toddlerColoringThemes].sort(() => 0.5 - Math.random());
-
-      const studentPages = [];
-      const answerPages = [];
-
-      try {
-        for (let i = 1; i <= count; i++) {
-          setStatus("loading", `⏳ Sedang menyusun Lembar #${i} dari ${count}...`);
-
-          const currentSubject = (formSubject === "Acak")
-            ? availableSubjects[(i - 1) % availableSubjects.length]
-            : formSubject;
-
-          const currentDifficulty = (formDifficulty === "Acak")
-            ? difficultiesList[Math.floor(Math.random() * difficultiesList.length)]
-            : formDifficulty;
-
-          if (level === "paud" || level === "tk") {
-            let actType = "mewarnai";
-            if (currentSubject.includes("Mewarnai")) actType = "mewarnai";
-            else if (currentSubject.includes("Perbedaan")) actType = "perbedaan";
-            else if (currentSubject.includes("Pola")) actType = "pola";
-            else if (currentSubject.includes("Tarik Garis")) actType = "tarikGaris";
-            else if (currentSubject.includes("Menghitung")) actType = "counting";
-            else {
-              actType = paudActivities[(i - 1) % paudActivities.length];
-            }
-
-            const assignedThemeObj = shuffledThemes[(i - 1) % shuffledThemes.length];
-            const result = await renderPaudTkLiveAI(actType, formTheme, i, assignedThemeObj, currentDifficulty);
-            studentPages.push(result.studentPage);
-            if (result.answerPage) answerPages.push(result.answerPage);
-          } else {
-            const systemPrompt = buildProductionSystemPrompt(level, currentSubject, currentDifficulty, i);
-            const aiData = await fetchBackendWorksheet(systemPrompt);
-            const result = renderWorksheet(level, aiData, currentSubject, i, currentDifficulty);
-            studentPages.push(result.studentPage);
-            if (result.answerPage) answerPages.push(result.answerPage);
-          }
-
-          if (i < count) await sleep(800);
-        }
-
-        studentPages.forEach(p => output.appendChild(p));
-        answerPages.forEach(p => output.appendChild(p));
-
-        setStatus("success", `✅ Berhasil membuat ${count} lembar kerja siswa + ${answerPages.length} lembar kunci jawaban terpisah! Klik '📥 Download PDF (A4)' untuk mencetak.`);
-      } catch (err) {
-        setStatus("error", `❌ Error saat membuat worksheet:<br><strong>${err.message}</strong>`);
-      } finally {
-        if (btn) btn.disabled = false;
-      }
-    }
-
-    window.addEventListener("DOMContentLoaded", () => {
-      setupRobustLogo();
-      updateSubjects();
-      updateConnectionIndicator();
-    });
-
-    // Inisialisasi awal saat script dimuat
-    updateSubjects();
-  </script>
-</body>
-</html>
+  }
+
+  // 2. High Definition Line-Art / Educational Vector Fallback (Zero Quota Failure Guarantee)
+  const isDiff = cleanPrompt.toLowerCase().includes('difference') || cleanPrompt.toLowerCase().includes('side by side');
+  const fallbackSvg = isDiff
+    ? generateSpotDifferenceVector(cleanPrompt)
+    : generateColoringVector(cleanPrompt);
+
+  const base64Svg = `data:image/svg+xml;base64,${Buffer.from(fallbackSvg).toString('base64')}`;
+  return res.status(200).json({ success: true, imageUrl: base64Svg, source: 'smart-vector-engine' });
+};
+
+function generateColoringVector(themePrompt) {
+  const p = themePrompt.toLowerCase();
+  let pathContent = '';
+  let label = 'PUTRI KERAJAAN CERIA';
+
+  if (p.includes('astronot') || p.includes('astronaut')) {
+    label = 'ASTRONOT CILIK DI ANGKASA';
+    pathContent = `
+      <ellipse cx="250" cy="240" rx="90" ry="85" fill="#ffffff" stroke="#1e293b" stroke-width="8" />
+      <ellipse cx="250" cy="240" rx="72" ry="65" fill="#f8fafc" stroke="#1e293b" stroke-width="5" />
+      <circle cx="225" cy="235" r="10" fill="#1e293b" />
+      <circle cx="275" cy="235" r="10" fill="#1e293b" />
+      <path d="M 235 260 Q 250 275 265 260" stroke="#1e293b" stroke-width="6" fill="none" stroke-linecap="round" />
+      <path d="M 170 320 Q 250 310 330 320 L 340 480 Q 250 495 160 480 Z" fill="#ffffff" stroke="#1e293b" stroke-width="8" />
+      <rect x="210" y="340" width="80" height="70" rx="14" fill="#ffffff" stroke="#1e293b" stroke-width="6" />
+      <circle cx="235" cy="375" r="8" fill="#1e293b" />
+      <circle cx="265" cy="375" r="8" fill="#1e293b" />
+      <path d="M 170 330 Q 120 370 140 420 Q 155 415 165 375" fill="#ffffff" stroke="#1e293b" stroke-width="7" />
+      <circle cx="140" cy="425" r="22" fill="#ffffff" stroke="#1e293b" stroke-width="7" />
+      <path d="M 330 330 Q 380 340 375 280" stroke="#1e293b" stroke-width="7" fill="none" stroke-linecap="round" />
+      <circle cx="375" cy="275" r="22" fill="#ffffff" stroke="#1e293b" stroke-width="7" />
+      <rect x="180" y="480" width="55" height="110" rx="25" fill="#ffffff" stroke="#1e293b" stroke-width="8" />
+      <rect x="265" y="480" width="55" height="110" rx="25" fill="#ffffff" stroke="#1e293b" stroke-width="8" />
+      <ellipse cx="205" cy="600" rx="36" ry="20" fill="#ffffff" stroke="#1e293b" stroke-width="8" />
+      <ellipse cx="295" cy="600" rx="36" ry="20" fill="#ffffff" stroke="#1e293b" stroke-width="8" />
+      <circle cx="100" cy="140" r="32" fill="#ffffff" stroke="#1e293b" stroke-width="6" />
+      <ellipse cx="100" cy="140" rx="55" ry="12" fill="none" stroke="#1e293b" stroke-width="5" transform="rotate(-25 100 140)" />
+      <polygon points="400,120 408,138 428,138 412,150 418,170 400,158 382,170 388,150 372,138 392,138" fill="#ffffff" stroke="#1e293b" stroke-width="5" />
+    `;
+  } else if (p.includes('pahlawan') || p.includes('superhero')) {
+    label = 'PAHLAWAN SUPER CILIK';
+    pathContent = `
+      <path d="M 140 260 L 90 520 L 250 470 L 410 520 L 360 260 Z" fill="#ffffff" stroke="#1e293b" stroke-width="8" />
+      <circle cx="250" cy="200" r="75" fill="#ffffff" stroke="#1e293b" stroke-width="8" />
+      <path d="M 185 200 Q 250 230 315 200 Q 300 160 250 180 Q 200 160 185 200 Z" fill="#ffffff" stroke="#1e293b" stroke-width="6" />
+      <ellipse cx="215" cy="195" rx="14" ry="10" fill="#1e293b" />
+      <ellipse cx="285" cy="195" rx="14" ry="10" fill="#1e293b" />
+      <path d="M 230 235 Q 250 255 270 235" stroke="#1e293b" stroke-width="6" fill="none" stroke-linecap="round" />
+      <rect x="175" y="275" width="150" height="150" rx="20" fill="#ffffff" stroke="#1e293b" stroke-width="8" />
+      <polygon points="250,305 275,345 225,345" fill="#ffffff" stroke="#1e293b" stroke-width="6" />
+      <polygon points="250,365 275,325 225,325" fill="#ffffff" stroke="#1e293b" stroke-width="6" />
+      <path d="M 175 295 Q 120 330 145 400" stroke="#1e293b" stroke-width="8" fill="none" stroke-linecap="round" />
+      <circle cx="145" cy="405" r="22" fill="#ffffff" stroke="#1e293b" stroke-width="7" />
+      <path d="M 325 295 Q 380 330 355 400" stroke="#1e293b" stroke-width="8" fill="none" stroke-linecap="round" />
+      <circle cx="355" cy="405" r="22" fill="#ffffff" stroke="#1e293b" stroke-width="7" />
+      <rect x="190" y="425" width="50" height="150" rx="20" fill="#ffffff" stroke="#1e293b" stroke-width="8" />
+      <rect x="260" y="425" width="50" height="150" rx="20" fill="#ffffff" stroke="#1e293b" stroke-width="8" />
+    `;
+  } else if (p.includes('kelinci') || p.includes('bunny')) {
+    label = 'KELINCI MANIS DI KEBUN';
+    pathContent = `
+      <ellipse cx="205" cy="130" rx="28" ry="85" fill="#ffffff" stroke="#1e293b" stroke-width="8" transform="rotate(-15 205 130)" />
+      <ellipse cx="295" cy="130" rx="28" ry="85" fill="#ffffff" stroke="#1e293b" stroke-width="8" transform="rotate(15 295 130)" />
+      <circle cx="250" cy="240" r="85" fill="#ffffff" stroke="#1e293b" stroke-width="8" />
+      <circle cx="220" cy="230" r="11" fill="#1e293b" />
+      <circle cx="280" cy="230" r="11" fill="#1e293b" />
+      <polygon points="250,252 240,242 260,242" fill="#1e293b" />
+      <path d="M 235 258 Q 250 270 265 258" stroke="#1e293b" stroke-width="6" fill="none" />
+      <ellipse cx="250" cy="410" rx="100" ry="115" fill="#ffffff" stroke="#1e293b" stroke-width="8" />
+      <ellipse cx="250" cy="425" rx="60" ry="75" fill="#ffffff" stroke="#1e293b" stroke-width="5" />
+      <path d="M 210 330 L 290 440 L 240 450 Z" fill="#ffffff" stroke="#1e293b" stroke-width="7" />
+      <ellipse cx="170" cy="520" rx="45" ry="25" fill="#ffffff" stroke="#1e293b" stroke-width="8" />
+      <ellipse cx="330" cy="520" rx="45" ry="25" fill="#ffffff" stroke="#1e293b" stroke-width="8" />
+    `;
+  } else {
+    // Default Putri Dongeng
+    pathContent = `
+      <polygon points="210,135 220,110 235,135 250,105 265,135 280,110 290,135" fill="#ffffff" stroke="#1e293b" stroke-width="6" />
+      <circle cx="250" cy="205" r="70" fill="#ffffff" stroke="#1e293b" stroke-width="8" />
+      <path d="M 180 200 Q 250 150 320 200 Q 320 290 305 310" stroke="#1e293b" stroke-width="8" fill="none" />
+      <circle cx="225" cy="200" r="10" fill="#1e293b" />
+      <circle cx="275" cy="200" r="10" fill="#1e293b" />
+      <path d="M 235 235 Q 250 250 265 235" stroke="#1e293b" stroke-width="5" fill="none" stroke-linecap="round" />
+      <path d="M 215 275 L 120 540 Q 250 580 380 540 L 285 275 Z" fill="#ffffff" stroke="#1e293b" stroke-width="8" />
+      <path d="M 215 275 Q 250 320 285 275" fill="#ffffff" stroke="#1e293b" stroke-width="6" />
+      <path d="M 190 300 Q 130 330 150 400" stroke="#1e293b" stroke-width="7" fill="none" stroke-linecap="round" />
+      <circle cx="150" cy="405" r="16" fill="#ffffff" stroke="#1e293b" stroke-width="6" />
+      <path d="M 310 300 Q 370 330 365 380" stroke="#1e293b" stroke-width="7" fill="none" stroke-linecap="round" />
+      <polygon points="365,340 372,358 392,358 376,370 382,390 365,378 348,390 354,370 338,358 358,358" fill="#ffffff" stroke="#1e293b" stroke-width="5" />
+    `;
+  }
+
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 660" width="100%" height="100%">
+      <rect width="500" height="660" fill="#ffffff" />
+      <rect x="15" y="15" width="470" height="630" rx="20" fill="none" stroke="#e2e8f0" stroke-width="4" stroke-dasharray="10 8" />
+      <g>${pathContent}</g>
+      <text x="250" y="635" font-family="'Fredoka', 'Nunito', sans-serif" font-size="14" font-weight="bold" fill="#64748b" text-anchor="middle">
+        ✨ LEMBAR MEWARNAI EDUKATIF • ${label} ✨
+      </text>
+    </svg>
+  `;
+}
+
+function generateSpotDifferenceVector(cleanPrompt) {
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%">
+      <rect width="800" height="500" fill="#f8fafc" />
+      
+      <!-- Panel A (Kiri) -->
+      <g transform="translate(20, 20)">
+        <rect width="365" height="440" rx="16" fill="#ffffff" stroke="#38bdf8" stroke-width="4" />
+        <rect x="15" y="15" width="110" height="32" rx="8" fill="#0284c7" />
+        <text x="70" y="37" font-family="'Fredoka', sans-serif" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">GAMBAR A</text>
+        
+        <!-- Rumah & Pohon -->
+        <rect x="90" y="220" width="180" height="150" fill="#bae6fd" stroke="#0369a1" stroke-width="5" />
+        <polygon points="180,110 60,220 300,220" fill="#f87171" stroke="#b91c1c" stroke-width="5" />
+        <rect x="155" y="270" width="50" height="100" fill="#fef08a" stroke="#ca8a04" stroke-width="5" />
+        <circle cx="195" cy="325" r="5" fill="#ca8a04" />
+        
+        <!-- Perbedaan 1: Warna Matahari (Kuning di A) -->
+        <circle cx="65" cy="90" r="30" fill="#facc15" stroke="#ca8a04" stroke-width="4" />
+        
+        <!-- Perbedaan 2: Bentuk Awan (Awan Bulat di A) -->
+        <ellipse cx="290" cy="80" rx="35" ry="20" fill="#e0f2fe" stroke="#0284c7" stroke-width="4" />
+        <ellipse cx="315" cy="75" rx="25" ry="18" fill="#e0f2fe" stroke="#0284c7" stroke-width="4" />
+
+        <!-- Perbedaan 3: Bunga di Tanah (Merah di A) -->
+        <circle cx="60" cy="380" r="14" fill="#ef4444" stroke="#991b1b" stroke-width="4" />
+        <line x1="60" y1="394" x2="60" y2="420" stroke="#15803d" stroke-width="5" />
+
+        <!-- Perbedaan 4: Cerobong Asap (Ada di A) -->
+        <rect x="230" y="130" width="30" height="50" fill="#fdba74" stroke="#c2410c" stroke-width="4" />
+      </g>
+
+      <!-- Panel Divider -->
+      <line x1="400" y1="20" x2="400" y2="470" stroke="#94a3b8" stroke-width="3" stroke-dasharray="8 6" />
+
+      <!-- Panel B (Kanan) -->
+      <g transform="translate(415, 20)">
+        <rect width="365" height="440" rx="16" fill="#ffffff" stroke="#f43f5e" stroke-width="4" />
+        <rect x="15" y="15" width="110" height="32" rx="8" fill="#e11d48" />
+        <text x="70" y="37" font-family="'Fredoka', sans-serif" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle">GAMBAR B</text>
+
+        <!-- Rumah & Pohon -->
+        <rect x="90" y="220" width="180" height="150" fill="#bae6fd" stroke="#0369a1" stroke-width="5" />
+        <polygon points="180,110 60,220 300,220" fill="#f87171" stroke="#b91c1c" stroke-width="5" />
+        <rect x="155" y="270" width="50" height="100" fill="#fef08a" stroke="#ca8a04" stroke-width="5" />
+        <circle cx="195" cy="325" r="5" fill="#ca8a04" />
+        
+        <!-- BEDA 1: Matahari Berubah Warna Oranye Tua -->
+        <circle cx="65" cy="90" r="30" fill="#fb923c" stroke="#c2410c" stroke-width="4" />
+        
+        <!-- BEDA 2: Awan Berubah Menjadi Bintang Ceria -->
+        <polygon points="300,55 308,72 327,72 312,83 317,102 300,90 283,102 288,83 273,72 292,72" fill="#fef08a" stroke="#ca8a04" stroke-width="3" />
+
+        <!-- BEDA 3: Bunga Berubah Warna Biru -->
+        <circle cx="60" cy="380" r="14" fill="#3b82f6" stroke="#1d4ed8" stroke-width="4" />
+        <line x1="60" y1="394" x2="60" y2="420" stroke="#15803d" stroke-width="5" />
+
+        <!-- BEDA 4: Cerobong Asap Hilang / Posisi Berubah -->
+        <circle cx="245" cy="155" r="15" fill="#fcd34d" stroke="#b45309" stroke-width="3" />
+      </g>
+
+      <text x="400" y="490" font-family="'Fredoka', sans-serif" font-size="13" font-weight="bold" fill="#64748b" text-anchor="middle">
+        🔍 TEMUKAN 4 PERBEDAAN PADA GAMBAR B DAN LINGKARILAH DENGAN PENSIL!
+      </text>
+    </svg>
+  `;
+}
