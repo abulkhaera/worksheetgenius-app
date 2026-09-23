@@ -9,7 +9,7 @@ module.exports = async (req, res) => {
     if (!apiKey) {
       return res.status(400).json({
         success: false,
-        error: "GEMINI_API_KEY tidak ditemukan."
+        error: "GEMINI_API_KEY tidak ditemukan. Masukkan API Key Google Gemini Anda di menu Pengaturan AI."
       });
     }
 
@@ -31,11 +31,11 @@ module.exports = async (req, res) => {
         const base64Data = candidatePart.inlineData?.data || candidatePart.inline_data?.data;
         return res.status(200).json({ success: true, imageUrl: `data:${mimeType};base64,${base64Data}` });
       } else {
-        return res.status(500).json({ success: false, error: "Google Nano Banana tidak mengembalikan data gambar." });
+        return res.status(500).json({ success: false, error: "Google Gemini 2.5 Flash Image tidak mengembalikan data gambar." });
       }
     } else {
       const errText = await response.text();
-      return res.status(response.status).json({ success: false, error: `Google Nano Banana API Error [HTTP ${response.status}]: ${errText}` });
+      return res.status(response.status).json({ success: false, error: `Google Gemini API Error [HTTP ${response.status}]: ${errText}` });
     }
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
