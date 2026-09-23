@@ -8,7 +8,7 @@ module.exports = async (req, res) => {
 
     if (!apiKey) return res.status(400).json({ success: false, error: "GEMINI_API_KEY tidak ditemukan. Silakan masukkan di menu Pengaturan AI." });
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const apiUrl = `[https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$](https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$){apiKey}`;
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
