@@ -1,350 +1,283 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WorksheetGenius - Generator Lembar Kerja Edukasi</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- html2pdf.js CDN for A4 Export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #f8fafc;
-        }
-        .a4-preview {
-            width: 210mm;
-            min-height: 297mm;
-            padding: 15mm;
-            margin: auto;
-            background: white;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
-            border-radius: 12px;
-        }
-        @media print {
-            body { background: white; padding: 0; }
-            .no-print { display: none !important; }
-            .a4-preview { box-shadow: none; padding: 10mm; width: 100%; border-radius: 0; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WorksheetGenius ID - Generator Lembar Kerja Edukasi</title>
+  
+  <link rel="icon" type="image/png" href="Logo.png" id="favIcon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://js.puter.com/v2/"></script>
+
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #0f172a; min-height: 100vh; }
+    .glass-panel { background: rgba(255, 255, 255, 0.95); border: 1px solid #e2e8f0; }
+    .glass-header { background: linear-gradient(135deg, #3730a3 0%, #2563eb 100%); }
+    .ws-page { background: #ffffff; width: 100%; max-width: 210mm; min-height: 297mm; padding: 16mm 14mm; box-shadow: 0 10px 25px rgba(0,0,0,0.08); margin: 0 auto 28px auto; border-radius: 12px; }
+    .diff-pill { font-size: 0.75rem; font-weight: 800; padding: 4px 12px; border-radius: 9999px; text-transform: uppercase; display: inline-flex; align-items: center; gap: 4px; margin-bottom: 8px; }
+    .diff-mudah { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    .diff-sedang { background: #fef9c3; color: #a16207; border: 1px solid #fde047; }
+    .diff-sulit { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+    .ws-paud-tk { font-family: 'Fredoka', cursive, sans-serif; border: 6px solid #84cc16; border-radius: 20px; padding: 20px; }
+    .ws-sd { font-family: 'Nunito', sans-serif; border: 4px solid #3b82f6; border-radius: 12px; padding: 18px; }
+    .ws-smp-sma { font-family: 'Times New Roman', Times, serif; border: 1px solid #000; padding: 18px; }
+    .ai-image-frame { border: 3px solid #38bdf8; border-radius: 16px; background: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 420px; overflow: hidden; width: 100%; }
+    .ai-generated-img { width: 100%; height: auto; max-height: 520px; object-fit: contain; }
+    .spinner { width: 36px; height: 36px; border: 4px solid #bae6fd; border-top-color: #0284c7; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media print { body { background: none; padding: 0; } .no-print { display: none !important; } .ws-page { box-shadow: none; border-radius: 0; width: 100%; } }
+  </style>
 </head>
-<body class="text-slate-800 min-h-screen pb-12">
+<body class="py-6 px-4">
 
-    <!-- Navbar Header Utama dengan Logo.png -->
-    <header class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 no-print">
-        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <!-- Elemen Logo: Menggunakan Logo.png dengan Fallback Ikon jika File Tidak Ditemukan -->
-                <div class="h-10 flex items-center justify-center">
-                    <img id="mainAppLogo" 
-                         src="Logo.png" 
-                         alt="WorksheetGenius Logo" 
-                         class="h-10 w-auto object-contain"
-                         onerror="this.style.display='none'; document.getElementById('fallbackLogoIcon').classList.remove('hidden');" />
-                    <div id="fallbackLogoIcon" class="hidden w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-md">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    </div>
-                </div>
-                <div>
-                    <h1 class="font-extrabold text-lg text-slate-900 leading-tight">WorksheetGenius<span class="text-indigo-600">.id</span></h1>
-                    <p class="text-xs text-slate-500 font-medium">Generator Lembar Kerja Edukasi Kurikulum Merdeka</p>
-                </div>
-            </div>
-
-            <!-- Tombol Pengaturan API Key -->
-            <button onclick="toggleKeyModal()" class="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center space-x-2 transition shadow-sm">
-                <i class="fa-solid fa-key text-amber-500"></i>
-                <span>Pengaturan API Key</span>
-            </button>
+  <div class="max-w-5xl mx-auto">
+    <header class="glass-header text-white rounded-2xl p-6 mb-6 shadow-lg flex flex-col sm:flex-row justify-between items-center gap-4 no-print">
+      <div class="flex items-center gap-3">
+        <img id="mainBrandLogo" src="Logo.png" class="h-12 w-auto object-contain" onerror="this.style.display='none'" alt="Logo">
+        <div>
+          <h1 class="text-2xl font-extrabold">WorksheetGenius<span class="text-amber-300">.id</span></h1>
+          <p class="text-xs text-white/80">Generator Lembar Kerja Kurikulum Merdeka & Visual PAUD/TK</p>
         </div>
+      </div>
+      <button type="button" onclick="toggleBackendSettings()" class="bg-white/20 hover:bg-white/30 border border-white/30 px-4 py-2 rounded-xl text-xs font-bold transition">
+        ⚙️ Koneksi AI
+      </button>
     </header>
 
-    <!-- Kontainer Utama -->
-    <main class="max-w-6xl mx-auto px-4 mt-8 space-y-8">
-
-        <!-- Panel Kontrol Parameter Pembuatan -->
-        <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-6 no-print">
-            <div class="border-b border-slate-100 pb-4 flex items-center justify-between">
-                <div>
-                    <h2 class="font-bold text-lg text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-sliders text-indigo-600"></i>
-                        <span>Parameter Pembuatan Lembar Kerja</span>
-                    </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Sesuaikan jenjang, topik kurikulum, dan tingkat kesulitan.</p>
-                </div>
-                <span class="bg-amber-50 text-amber-700 border border-amber-200/60 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
-                    <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> Auto-Format A4
-                </span>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <!-- 1. Jenjang Pendidikan -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-2">1. Jenjang Pendidikan</label>
-                    <select id="jenjang" onchange="updateSubjects()" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
-                        <option value="TK">TK (4–6 tahun)</option>
-                        <option value="SD13">SD Kelas 1–3 (Fase A)</option>
-                        <option value="SD46">SD Kelas 4–6 (Fase B & C)</option>
-                        <option value="SMP">SMP (Fase D)</option>
-                        <option value="SMA">SMA (Fase E & F)</option>
-                    </select>
-                </div>
-
-                <!-- 2. Mata Pelajaran / Tema -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-2">2. Mata Pelajaran / Tema</label>
-                    <select id="subject" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
-                        <!-- Otomatis diisi oleh updateSubjects() -->
-                    </select>
-                </div>
-
-                <!-- 3. Jumlah Worksheet -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-2">3. Jumlah Worksheet</label>
-                    <div class="relative">
-                        <input type="number" id="worksheetCount" value="1" min="1" max="5" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
-                        <span class="absolute right-3 top-3 text-xs text-slate-400 font-semibold pointer-events-none">Lembar</span>
-                    </div>
-                </div>
-
-                <!-- 4. Tingkat Kesulitan -->
-                <div>
-                    <div class="flex items-center justify-between mb-2">
-                        <label class="text-xs font-bold text-slate-700">4. Tingkat Kesulitan</label>
-                        <span class="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-bold">Bloom Taxonomy</span>
-                    </div>
-                    <select id="difficulty" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
-                        <option value="mudah">Mudah (Pemula / C1-C2)</option>
-                        <option value="sedang" selected>Sedang / Menengah (C3-C4)</option>
-                        <option value="sulit">Tantangan HOTS (C5-C6)</option>
-                        <option value="acak">🎲 Acak (Bervariasi Tiap Lembar)</option>
-                    </select>
-                </div>
-
-                <!-- 5. Tema Karakter PAUD & TK -->
-                <div class="md:col-span-2">
-                    <label class="block text-xs font-bold text-slate-700 mb-2">5. Tema Karakter PAUD & TK</label>
-                    <select id="visualTheme" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
-                        <option value="acak">🎲 Acak (AI Bebas Memilih Otomatis)</option>
-                        <option value="astronot">🚀 Astronot Cilik & Penjelajah Angkasa</option>
-                        <option value="dinosaurus">🦕 Dinosaurus Purba Ramah</option>
-                        <option value="hewan_rimba">🦁 Hewan Rimba & Petualangan Safari</option>
-                        <option value="koki_beruang">👨‍🍳 Koki Beruang & Toko Roti Ajaib</option>
-                        <option value="bawah_laut">🐙 Terumbu Karang & Istana Bawah Laut</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Tombol Aksi -->
-            <div class="flex flex-col sm:flex-row items-center gap-4 pt-2">
-                <button onclick="generateWorksheet()" id="btnGenerate" class="w-full sm:w-auto flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-indigo-200 transition flex items-center justify-center space-x-2 text-sm">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    <span>Buat Lembar Kerja Siswa</span>
-                </button>
-                <button onclick="downloadPDF()" id="btnDownload" disabled class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-emerald-100 transition flex items-center justify-center space-x-2 text-sm">
-                    <i class="fa-solid fa-file-pdf"></i>
-                    <span>Download PDF (A4)</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Indikator Loading Processing -->
-        <div id="statusBox" class="hidden bg-indigo-50/80 border border-indigo-200/80 text-indigo-900 rounded-2xl p-4 flex items-center space-x-3.5 no-print shadow-sm">
-            <i class="fa-solid fa-circle-notch fa-spin text-indigo-600 text-2xl"></i>
-            <div>
-                <p id="statusText" class="text-sm font-bold">Sedang memproses permintaan...</p>
-                <p class="text-xs text-indigo-700 font-medium">Sistem memproses materi via FLUX AI Engine & Gemini AI.</p>
-            </div>
-        </div>
-
-        <!-- Area Tampilan Lembar Kerja A4 -->
-        <div id="worksheetDisplay" class="a4-preview relative border border-slate-200 my-8">
-            <div class="text-center py-24 text-slate-400 space-y-3">
-                <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto text-slate-300">
-                    <i class="fa-solid fa-file-pen text-3xl"></i>
-                </div>
-                <p class="font-bold text-slate-600 text-sm">Lembar kerja belum dibuat.</p>
-                <p class="text-xs text-slate-400">Pilih parameter di atas lalu klik <strong class="text-indigo-600">"Buat Lembar Kerja Siswa"</strong>.</p>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Modal Pengaturan API Key -->
-    <div id="keyModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div class="flex items-center justify-between border-b pb-3">
-                <h3 class="font-bold text-slate-800 flex items-center space-x-2">
-                    <i class="fa-solid fa-key text-amber-500"></i>
-                    <span>Pengaturan API Key Google Gemini</span>
-                </h3>
-                <button onclick="toggleKeyModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <p class="text-xs text-slate-600 leading-relaxed">
-                Diperlukan untuk pembuatan naskah soal akademik SD–SMA. Pembuatan gambar PAUD/TK berjalan otomatis via FLUX AI tanpa memerlukan kunci.
-            </p>
-            <input type="password" id="customApiKey" placeholder="AIzaSy..." class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono">
-            <div class="flex justify-end space-x-2 pt-2">
-                <button onclick="saveApiKey()" class="bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl text-xs hover:bg-indigo-700 transition">Simpan Key</button>
-            </div>
-        </div>
+    <div id="backendSettingsBox" class="hidden glass-panel rounded-2xl p-6 mb-6 shadow-md border-2 border-indigo-200 no-print">
+      <div class="flex justify-between items-center pb-3 mb-4 border-b">
+        <h3 class="font-bold text-slate-800 text-sm">🔑 Pengaturan Google Gemini API Key</h3>
+        <button onclick="toggleBackendSettings()" class="text-slate-400 hover:text-slate-600 text-xs">Tutup ✕</button>
+      </div>
+      <p class="text-xs text-slate-600 mb-3">Opsional: Masukkan API Key dari Google AI Studio. Jika kosong, sistem otomatis menggunakan engine gratis Puter.js / FLUX.</p>
+      <input type="password" id="customApiKey" placeholder="AIzaSy..." class="w-full text-xs font-mono p-3 border rounded-xl mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      <div class="flex gap-2">
+        <button onclick="saveSettings()" class="bg-indigo-600 text-white font-bold text-xs py-2 px-4 rounded-xl">Simpan Ke Peramban</button>
+      </div>
     </div>
 
-    <!-- Skrip Logika Aplikasi -->
-    <script>
-        const subjectsMap = {
-            'TK': [
-                '🎨 Belajar Mewarnai (Line-Art)',
-                '🔍 Cari Perbedaan (Spot 3D)',
-                '🧩 Ikuti Pola Karakter',
-                '✏️ Tarik Garis Asosiasi',
-                '🔢 Menghitung Ceria'
-            ],
-            'SD13': ['Bahasa Indonesia', 'Matematika', 'IPAS', 'Pancasila', 'Seni Budaya'],
-            'SD46': ['Bahasa Indonesia', 'Matematika', 'IPAS', 'Pancasila', 'Bahasa Inggris'],
-            'SMP': ['Bahasa Indonesia', 'Matematika', 'IPA', 'IPS', 'Pancasila', 'Bahasa Inggris'],
-            'SMA': ['Bahasa Indonesia', 'Matematika', 'Fisika', 'Kimia', 'Biologi', 'Ekonomi', 'Sosiologi', 'Geografi', 'Bahasa Inggris']
-        };
+    <div class="glass-panel rounded-2xl p-6 shadow-md border mb-8 no-print space-y-5">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">1. Jenjang Pendidikan</label>
+          <select id="jenjang" onchange="updateSubjects()" class="w-full p-2.5 bg-white border rounded-xl text-xs font-semibold">
+            <option value="tk" selected>TK (4–6 tahun)</option>
+            <option value="sd">SD (Kelas 1–6)</option>
+            <option value="smp">SMP (Kelas 7–9)</option>
+            <option value="sma">SMA (Kelas 10–12)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">2. Mata Pelajaran / Tema</label>
+          <select id="subject" class="w-full p-2.5 bg-white border rounded-xl text-xs font-semibold"></select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">3. Jumlah Lembar</label>
+          <input type="number" id="count" value="1" min="1" max="5" class="w-full p-2.5 bg-white border rounded-xl text-xs font-semibold">
+        </div>
+      </div>
 
-        function updateSubjects() {
-            const jenjang = document.getElementById('jenjang').value;
-            const subjectSelect = document.getElementById('subject');
-            subjectSelect.innerHTML = '';
-            
-            const list = subjectsMap[jenjang] || subjectsMap['TK'];
-            list.forEach(subj => {
-                const opt = document.createElement('option');
-                opt.value = subj;
-                opt.textContent = subj;
-                subjectSelect.appendChild(opt);
-            });
-        }
+      <div class="flex gap-3 pt-2">
+        <button id="btnGenerate" onclick="generateWorksheetsAI()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow text-xs flex items-center justify-center gap-2">
+          <span>✨ Buat Lembar Kerja Siswa</span>
+        </button>
+        <button id="btnDownload" onclick="downloadWorksheetsPDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-5 rounded-xl shadow text-xs flex items-center justify-center gap-2">
+          <span>📥 Download PDF (A4)</span>
+        </button>
+      </div>
+      <div id="statusContainer"></div>
+    </div>
 
-        function toggleKeyModal() {
-            const modal = document.getElementById('keyModal');
-            modal.classList.toggle('hidden');
-            const savedKey = localStorage.getItem('GEMINI_API_KEY') || '';
-            document.getElementById('customApiKey').value = savedKey;
-        }
+    <div id="output" class="flex flex-col items-center"></div>
+  </div>
 
-        function saveApiKey() {
-            const key = document.getElementById('customApiKey').value.trim();
-            localStorage.setItem('GEMINI_API_KEY', key);
-            toggleKeyModal();
-            alert('API Key berhasil disimpan di peramban.');
-        }
+  <script>
+    function getSavedApiKey() { return (localStorage.getItem('ws_gemini_direct_key') || '').trim(); }
+    function toggleBackendSettings() {
+      const box = document.getElementById('backendSettingsBox');
+      box.classList.toggle('hidden');
+      if (!box.classList.contains('hidden')) document.getElementById('customApiKey').value = getSavedApiKey();
+    }
+    function saveSettings() {
+      const key = document.getElementById('customApiKey').value.trim();
+      localStorage.setItem('ws_gemini_direct_key', key);
+      alert('API Key tersimpan!');
+      toggleBackendSettings();
+    }
 
-        async function generateWorksheet() {
-            const jenjang = document.getElementById('jenjang').value;
-            const subject = document.getElementById('subject').value;
-            const difficulty = document.getElementById('difficulty').value;
-            const theme = document.getElementById('visualTheme').value;
+    const subjectMapping = {
+      tk: ["Belajar Mewarnai", "Cari Perbedaan", "Ikuti Polanya", "Tarik Garis & Pasangkan", "Menghitung Ceria"],
+      sd: ["Bahasa Indonesia", "Matematika Dasar", "IPAS", "Pancasila"],
+      smp: ["Bahasa Indonesia", "Matematika", "IPA Terpadu", "Bahasa Inggris"],
+      sma: ["Bahasa Indonesia", "Matematika Wajib", "Fisika", "Kimia", "Biologi"]
+    };
 
-            const statusBox = document.getElementById('statusBox');
-            const statusText = document.getElementById('statusText');
-            const display = document.getElementById('worksheetDisplay');
-            const btnDownload = document.getElementById('btnDownload');
+    function updateSubjects() {
+      const level = document.getElementById("jenjang").value;
+      const select = document.getElementById("subject");
+      select.innerHTML = "";
+      (subjectMapping[level] || []).forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s; opt.textContent = s;
+        select.appendChild(opt);
+      });
+    }
 
-            statusBox.classList.remove('hidden');
-            statusText.textContent = 'Menghubungkan ke AI Engine...';
+    async function fetchBackendWorksheet(systemPrompt) {
+      const apiKey = getSavedApiKey();
+      if (apiKey) {
+        try {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ role: 'user', parts: [{ text: systemPrompt }] }],
+              generationConfig: { responseMimeType: 'application/json', temperature: 0.7 }
+            })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+            return JSON.parse(rawText.trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/i, ""));
+          }
+        } catch (e) {}
+      }
+      
+      const response = await puter.ai.chat(systemPrompt, { model: 'gemini-2.5-flash' });
+      const rawText = typeof response === 'string' ? response : (response?.message?.content || response.toString());
+      return JSON.parse(rawText.trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/i, ""));
+    }
 
-            try {
-                if (jenjang === 'TK' && (subject.includes('Mewarnai') || subject.includes('Cari Perbedaan'))) {
-                    const isColoring = subject.includes('Mewarnai');
-                    
-                    const res = await fetch('/api/generate-image', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            type: isColoring ? 'coloring' : 'difference', 
-                            theme: theme, 
-                            difficulty: difficulty 
-                        })
-                    });
-                    
-                    const data = await res.json();
-                    if (!data.success || !data.imageUrl) throw new Error(data.message || 'Gagal mendapatkan gambar dari FLUX.');
-
-                    statusText.textContent = 'Merenrender lembar kerja visual...';
-
-                    display.innerHTML = `
-                        <div class="p-4 border-b border-slate-200 flex justify-between items-center mb-6">
-                            <div class="flex items-center space-x-3">
-                                <img src="Logo.png" class="h-8 w-auto object-contain" onerror="this.style.display='none'" alt="Logo" />
-                                <div>
-                                    <h2 class="font-bold text-lg uppercase tracking-wide text-slate-900">${subject}</h2>
-                                    <p class="text-xs text-slate-500">Lembar Kerja PAUD/TK • Tema: ${theme} • Kesulitan: ${difficulty}</p>
-                                </div>
-                            </div>
-                            <div class="border text-xs px-3 py-1.5 rounded-lg font-bold border-slate-300 bg-slate-50">Nilai: ______</div>
-                        </div>
-                        <div class="flex flex-col justify-center items-center my-4 min-h-[450px]">
-                            <img id="generatedWorksheetImg" 
-                                 src="${data.imageUrl}" 
-                                 crossorigin="anonymous"
-                                 class="max-h-[620px] w-auto object-contain rounded-lg border border-slate-200 shadow-sm" 
-                                 alt="Lembar Kerja Visual"
-                                 onload="document.getElementById('statusBox').classList.add('hidden'); document.getElementById('btnDownload').disabled = false;"
-                                 onerror="alert('Gagal memuat gambar dari FLUX Engine. Silakan klik tombol buat sekali lagi.'); document.getElementById('statusBox').classList.add('hidden');" />
-                        </div>
-                        <div class="text-center text-xs text-slate-400 mt-6 border-t pt-3">WorksheetGenius.id • Hak Cipta Edukasi Anak</div>
-                    `;
-                } else {
-                    statusText.textContent = 'Merumuskan naskah soal Kurikulum Merdeka via Gemini AI...';
-                    const userKey = localStorage.getItem('GEMINI_API_KEY') || '';
-                    
-                    const res = await fetch('/api/generate-worksheet', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ jenjang, subject, difficulty, apiKey: userKey })
-                    });
-
-                    const data = await res.json();
-                    if (!data.success) throw new Error(data.message || 'Gagal merumuskan lembar kerja.');
-
-                    display.innerHTML = `
-                        <div class="p-4 border-b border-slate-200 flex justify-between items-center mb-6">
-                            <div class="flex items-center space-x-3">
-                                <img src="Logo.png" class="h-8 w-auto object-contain" onerror="this.style.display='none'" alt="Logo" />
-                                <div>
-                                    <h2 class="font-bold text-lg uppercase tracking-wide text-slate-900">LEMBAR KERJA SISWA (${jenjang})</h2>
-                                    <p class="text-xs text-slate-500">Mata Pelajaran: ${subject} • Kesulitan: ${difficulty}</p>
-                                </div>
-                            </div>
-                            <div class="border text-xs px-3 py-1.5 rounded-lg font-bold border-slate-300 bg-slate-50">Nilai: ______</div>
-                        </div>
-                        <div class="prose max-w-none text-slate-800 space-y-4 text-sm leading-relaxed">
-                            ${data.content || '<p>Lembar kerja berhasil dibuat.</p>'}
-                        </div>
-                        <div class="text-center text-xs text-slate-400 mt-8 border-t pt-3">WorksheetGenius.id • Kurikulum Merdeka</div>
-                    `;
-                    statusBox.classList.add('hidden');
-                    btnDownload.disabled = false;
-                }
-            } catch (err) {
-                alert('Terjadi Kesalahan: ' + err.message);
-                statusBox.classList.add('hidden');
+    async function callBackendImage(promptText, aspectRatio = "3:4") {
+      const apiKey = getSavedApiKey();
+      if (apiKey) {
+        try {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }], generationConfig: { responseMimeType: "image/jpeg" } })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const part = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData || p.inline_data);
+            if (part) {
+              const mime = part.inlineData?.mimeType || part.inline_data?.mime_type || "image/jpeg";
+              const bytes = part.inlineData?.data || part.inline_data?.data;
+              return `data:${mime};base64,${bytes}`;
             }
+          }
+        } catch (e) {}
+      }
+
+      try {
+        const imgElement = await puter.ai.txt2img(promptText);
+        return imgElement.src;
+      } catch (err) {
+        const seed = Math.floor(Math.random() * 9999999);
+        return `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?model=flux&width=768&height=1024&seed=${seed}&nologo=true`;
+      }
+    }
+
+    function buildProductionSystemPrompt(level, subject, index) {
+      return `Role: Tim Ahli Asesmen Pembelajaran Kurikulum Merdeka Indonesia. Output WAJIB JSON MURNI.
+Jenjang: ${level.toUpperCase()}, Mata Pelajaran: ${subject}, Lembar Ke: #${index}
+Format Output JSON:
+{
+  "title": "Judul Lembar Kerja Edukatif",
+  "objective": "Tujuan Pembelajaran Kurikulum Merdeka",
+  "instructions": "Petunjuk pengerjaan bagi peserta didik",
+  "questions": [
+    { "id": 1, "prompt": "Soal nomor 1...", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "answer": "A" }
+  ]
+}`;
+    }
+
+    async function generateWorksheetsAI() {
+      const level = document.getElementById("jenjang").value;
+      const subject = document.getElementById("subject").value;
+      const output = document.getElementById("output");
+      const statusBox = document.getElementById("statusContainer");
+      
+      output.innerHTML = "";
+      statusBox.innerHTML = `<div class="p-3 bg-indigo-50 text-indigo-900 rounded-xl text-xs font-bold flex items-center gap-2"><div class="spinner"></div> Sedang memproses lembar kerja...</div>`;
+
+      try {
+        const page = document.createElement("div");
+        page.className = `ws-page ${level === 'tk' ? 'ws-paud-tk' : (level === 'sd' ? 'ws-sd' : 'ws-smp-sma')}`;
+
+        if (level === "tk" && (subject.includes("Mewarnai") || subject.includes("Perbedaan"))) {
+          const isColoring = subject.includes("Mewarnai");
+          const prompt = isColoring 
+            ? "clean vector coloring book page for toddlers, bold black line art, pure white background #ffffff, cute astronaut floating in space with planets, no shading"
+            : "side-by-side spot the difference puzzle game for kids, 3d cgi cartoon style, cute bear chef bakery shop, 4:3 aspect ratio";
+
+          page.innerHTML = `
+            <div class="text-center font-bold text-xl text-blue-700 uppercase mb-4">${subject}</div>
+            <div class="ai-image-frame">
+              <div id="loader" class="flex flex-col items-center gap-2 text-indigo-600 font-bold p-6">
+                <div class="spinner"></div>
+                <span>Melukis gambar visual dengan AI Engine...</span>
+              </div>
+              <img id="coloringImg" class="ai-generated-img" style="display:none;" />
+            </div>
+          `;
+          output.appendChild(page);
+
+          const imgUrl = await callBackendImage(prompt, isColoring ? "3:4" : "4:3");
+          const img = document.getElementById("coloringImg");
+          const loader = document.getElementById("loader");
+          if (img && loader) {
+            img.src = imgUrl;
+            loader.style.display = "none";
+            img.style.display = "block";
+          }
+        } else {
+          const systemPrompt = buildProductionSystemPrompt(level, subject, 1);
+          const aiData = await fetchBackendWorksheet(systemPrompt);
+
+          page.innerHTML = `
+            <div class="ws-header border-b pb-3 mb-4">
+              <h2 class="font-bold text-xl uppercase">${aiData.title || subject}</h2>
+              <p class="text-xs text-slate-500">Kurikulum Merdeka • Jenjang ${level.toUpperCase()}</p>
+            </div>
+            <div class="text-xs font-bold mb-4 bg-slate-50 p-3 rounded-lg border">${aiData.instructions || 'Kerjakan dengan teliti.'}</div>
+            <div class="space-y-4 text-sm">
+              ${(aiData.questions || []).map(q => `
+                <div class="p-3 bg-slate-50 rounded-lg border">
+                  <strong>${q.id}. ${q.prompt}</strong>
+                  <div class="grid grid-cols-2 gap-2 mt-2 pl-4 text-xs font-medium">
+                    ${(q.options || []).map(opt => `<div>${opt}</div>`).join('')}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+          output.appendChild(page);
         }
 
-        function downloadPDF() {
-            const element = document.getElementById('worksheetDisplay');
-            const opt = {
-                margin: 0,
-                filename: 'WorksheetGenius-A4.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().set(opt).from(element).save();
-        }
+        statusBox.innerHTML = `<div class="p-3 bg-emerald-50 text-emerald-900 rounded-xl text-xs font-bold">✅ Selesai! Lembar kerja berhasil dibuat.</div>`;
+      } catch (err) {
+        statusBox.innerHTML = `<div class="p-3 bg-rose-50 text-rose-900 rounded-xl text-xs font-bold">❌ Error: ${err.message}</div>`;
+      }
+    }
 
-        // Jalankan sinkronisasi dropdown mata pelajaran saat halaman siap
-        document.addEventListener('DOMContentLoaded', updateSubjects);
-    </script>
+    function downloadWorksheetsPDF() {
+      const output = document.getElementById("output");
+      html2pdf().set({
+        margin: [8, 6, 8, 6],
+        filename: 'WorksheetGenius-A4.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      }).from(output).save();
+    }
+
+    document.addEventListener('DOMContentLoaded', updateSubjects);
+  </script>
 </body>
 </html>
