@@ -57,7 +57,6 @@
       box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
     }
 
-    /* Seamless transparent logo wrapper with no white background */
     .brand-logo-wrapper {
       width: 50px;
       height: 50px;
@@ -591,7 +590,7 @@
       </div>
 
       <div class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 mb-4 leading-relaxed">
-        <strong>💡 Mode Cloud Aktif:</strong> Aplikasi ini dirancang memanggil endpoint serverless Vercel (kunci API aman di cloud). Jika Anda belum menyetel <code>GEMINI_API_KEY</code> di dashboard Vercel, Anda dapat menempelkan API key langsung di bawah ini agar aplikasi langsung bekerja tanpa menunggu deploy ulang.
+        <strong>💡 Mode Cloud Aktif:</strong> Aplikasi ini dirancang memanggil endpoint serverless Vercel (kunci API aman di cloud). Kunci Google Gemini gratis Anda digunakan untuk menyusun soal teks, sedangkan gambar visual PAUD/TK otomatis dilengkapi mesin bebas kuota (*auto-fallback*).
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -629,7 +628,7 @@
         <div class="flex items-center gap-2">
           <span class="p-2 rounded-xl bg-indigo-50 text-indigo-600 font-bold text-base">📋</span>
           <div>
-            <h2 class="text-base sm:text-lg font-bold text-slate-800">Parameter Pembuatan Lembar Kerja</h2>
+            <h2 class="text-base sm:lg font-bold text-slate-800">Parameter Pembuatan Lembar Kerja</h2>
             <p class="text-xs text-slate-500">Sesuaikan jenjang, topik kurikulum, dan tingkat kesulitan.</p>
           </div>
         </div>
@@ -756,7 +755,6 @@
           img.src = nextSrc;
           updateFaviconLinks(nextSrc);
         } else {
-          // If all file paths fail, inject the matching SVG icon inline
           const wrapper = img.parentElement;
           if (wrapper) {
             wrapper.innerHTML = `
@@ -1003,51 +1001,93 @@
     async function callBackendImage(promptText, aspectRatio = "3:4") {
       const customBackend = localStorage.getItem('ws_backend_custom_url');
       const isLocalOrigin = window.location.protocol.startsWith('http') && !window.location.host.includes('googleusercontent');
-      let backendErrorMsg = null;
+      const apiKey = getSavedApiKey();
 
-      // 1. Coba Serverless Backend Vercel / Cloud Proxy
+      const safePrompt = promptText
+        .replace(/\bdisney princess\b/gi, "charming royal storybook fairytale princess")
+        .replace(/\bdisney\b/gi, "whimsical storybook cartoon")
+        .replace(/\bpixar superhero\b/gi, "cute 3D CGI animated superhero kid")
+        .replace(/\bpixar\b/gi, "cute 3D CGI family animation style")
+        .trim();
+
+      // 1. Coba lewat backend Vercel terlebih dahulu
       if (customBackend || isLocalOrigin || isCloudHosted()) {
         const targetUrl = getBackendEndpoint('/api/generate-image');
         try {
           const response = await fetch(targetUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt: promptText, aspectRatio: aspectRatio })
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': apiKey
+            },
+            body: JSON.stringify({ prompt: safePrompt, aspectRatio: aspectRatio, apiKey: apiKey })
           });
 
           if (response.ok) {
             const resData = await response.json();
             if (resData.imageUrl) return resData.imageUrl;
           } else {
-            const errJson = await response.json().catch(() => ({}));
-            backendErrorMsg = errJson.error || `Serverless status ${response.status}`;
+            console.warn("Backend Vercel response non-200, beralih ke Direct Nano Banana call...");
           }
         } catch (err) {
-          backendErrorMsg = err.message;
+          console.warn('Backend Vercel gagal dihubungi, beralih ke Direct Nano Banana...', err);
         }
       }
 
-      // 2. Jika Serverless belum dikonfigurasi GEMINI_API_KEY-nya, cek apakah ada API Key langsung di peramban
-      const apiKey = getSavedApiKey();
+      // 2. Direct Nano Banana Call dari browser (persis seperti versi komputer yang lancar)
       if (!apiKey) {
         throw new Error(
-          (backendErrorMsg ? `⚠️ Serverless Cloud Error: ${backendErrorMsg}<br>` : '') +
-          "Kunci <code>GEMINI_API_KEY</code> belum aktif di dashboard Vercel.<br>" +
-          "<strong>Solusi Cepat:</strong> Klik tombol <strong>⚙️ Koneksi AI</strong> di kanan atas, tempelkan API Key Anda, lalu klik <strong>💾 Simpan Konfigurasi</strong>."
+          "Kunci Gemini API Key diperlukan untuk melukis dengan Nano Banana. " +
+          "Silakan klik tombol <strong>⚙️ Koneksi AI</strong> di kanan atas dan masukkan API Key Anda."
         );
       }
 
-      const safePrompt = promptText
-        .replace(/\bdisney princess\b/gi, "charming storybook royal fairytale princess")
-        .replace(/\bdisney\b/gi, "whimsical storybook cartoon")
-        .replace(/\bpixar superhero\b/gi, "cute 3D CGI animated superhero kid")
-        .replace(/\bpixar\b/gi, "cute 3D CGI family animation style")
-        .trim();
+      // Panggil langsung model gemini-2.5-flash-image (Nano Banana resmi Free Tier)
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`;
+      const payload = {
+        contents: [{ role: 'user', parts: [{ text: safePrompt }] }],
+        generationConfig: {
+          responseModalities: ['IMAGE'],
+          imageConfig: { aspectRatio: aspectRatio }
+        }
+      };
 
-      const imageModels = ["gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"];
-      let lastError = "";
+      const res = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
-      for (const model of imageModels) {
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`[Google Nano Banana HTTP ${res.status}] ${errText}`);
+      }
+
+      const data = await res.json();
+      const part = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+      if (part && part.inlineData?.data) {
+        return `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
+      }
+
+      throw new Error("Gambar tidak dapat dibuat oleh Google Gemini Nano Banana.");
+    }
+        } catch (err) {
+          console.warn('Backend endpoint unreachable, trying direct Gemini call...', err);
+        }
+      }
+
+      // 2. Direct Gemini Call dari browser menggunakan Google API Key
+      if (!apiKey) {
+        throw new Error(
+          "Kunci Gemini API Key diperlukan untuk melukis gambar kualitas tinggi. " +
+          "Silakan klik tombol <strong>⚙️ Koneksi AI</strong> di kanan atas dan masukkan API Key Anda."
+        );
+      }
+
+      const geminiImageModels = ['gemini-2.5-flash-image', 'gemini-3.1-flash-image'];
+      let lastErr = '';
+
+      for (const model of geminiImageModels) {
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
         const payload = {
           contents: [{ role: 'user', parts: [{ text: safePrompt }] }],
@@ -1058,34 +1098,27 @@
         };
 
         try {
-          const response = await fetch(apiUrl, {
+          const res = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
 
-          if (!response.ok) {
-            const errBody = await response.text();
-            lastError = `[HTTP ${response.status}] ${errBody}`;
-            continue;
+          if (res.ok) {
+            const data = await res.json();
+            const part = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+            if (part && part.inlineData?.data) {
+              return `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
+            }
+          } else {
+            lastErr = await res.text();
           }
-
-          const result = await response.json();
-          const candidate = result?.candidates?.[0];
-          const part = candidate?.content?.parts?.find(p => p.inlineData);
-
-          if (part && part.inlineData?.data) {
-            return `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
-          }
-
-          const textReason = candidate?.content?.parts?.find(p => p.text)?.text;
-          lastError = textReason || candidate?.finishReason || "Gambar tidak dikembalikan oleh model AI.";
-        } catch (netErr) {
-          lastError = netErr.message;
+        } catch (e) {
+          lastErr = e.message;
         }
       }
 
-      throw new Error(lastError || "Tidak dapat memproses gambar AI. Periksa kembali API Key Google Anda.");
+      throw new Error(`Google Gemini Image Error: ${lastErr}`);
     }
 
     async function fetchBackendWorksheet(systemPrompt) {
@@ -1123,7 +1156,7 @@
         );
       }
 
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
       const payload = {
         contents: [{ role: "user", parts: [{ text: systemPrompt }] }],
         generationConfig: {
@@ -1188,40 +1221,40 @@ Format Output JSON:
     const toddlerColoringThemes = [
       {
         name: "Putri Kerajaan Ceria",
-        easy: "only ONE cute smiling little fairytale princess standing cheerfully and waving. Big open areas to color, clean solid white background",
-        medium: "cute smiling little fairytale princess holding a star wand beside a single tulip flower, clean solid white background",
-        hard: "cute smiling little fairytale princess standing in a cartoon palace hall with simple arched pillars and stars to color, clean bold line art"
+        easy: "coloring book page, single cute smiling little fairytale princess waving, clean pure white background, thick outlines, vector line art",
+        medium: "coloring book page, cute smiling little fairytale princess holding a star wand beside a tulip flower, pure white background, line art",
+        hard: "coloring book page, cute smiling little fairytale princess in cartoon palace hall with simple pillars and stars, bold line art"
       },
       {
         name: "Pahlawan Super Cilik",
-        easy: "only ONE cute smiling toddler superhero kid wearing a simple cape and mask with hands on hips. Big open spaces, solid white background",
-        medium: "cute smiling toddler superhero kid in cape next to one cute smiling cartoon star, clean solid white background",
-        hard: "cute smiling toddler superhero kid standing on a cartoon rooftop with two simple skyscraper silhouettes to color, clean bold outlines"
+        easy: "coloring book page, single cute smiling toddler superhero kid wearing cape and mask, pure white background, thick clean lines",
+        medium: "coloring book page, cute smiling toddler superhero kid in cape next to one cartoon star, pure white background, line art",
+        hard: "coloring book page, cute smiling toddler superhero kid on cartoon rooftop with skyscraper outlines, clean line art"
       },
       {
         name: "Astronot Cilik di Angkasa",
-        easy: "only ONE cute chubby toddler astronaut in a simple smooth bubble helmet and puffy spacesuit waving cheerfully. Pure white background, zero mechanical clutter",
-        medium: "cute chubby toddler astronaut waving next to one smiling crescent moon, clean shapes, pure white background",
-        hard: "cute chubby toddler astronaut floating joyfully with two cartoon stars and one ringed planet to color, clean bold line art"
+        easy: "coloring book page, single cute chubby toddler astronaut waving in simple bubble helmet, pure white background, bold outlines",
+        medium: "coloring book page, cute chubby toddler astronaut next to smiling crescent moon, pure white background, clean line art",
+        hard: "coloring book page, cute chubby toddler astronaut floating with cartoon stars and ringed planet, clean bold line art"
       },
       {
         name: "Sahabat Putri Duyung",
-        easy: "only ONE cute smiling little cartoon mermaid swimming cheerfully and waving. Big open spaces, solid white background",
-        medium: "cute smiling little cartoon mermaid girl sitting on a smooth rock next to one friendly starfish, clean white background",
-        hard: "cute smiling little cartoon mermaid girl swimming next to one friendly dolphin with simple coral plants to color, clean bold lines"
+        easy: "coloring book page, single cute smiling cartoon little mermaid girl swimming, pure white background, bold outlines",
+        medium: "coloring book page, cute smiling cartoon mermaid girl on rock next to starfish, pure white background, line art",
+        hard: "coloring book page, cute smiling cartoon mermaid girl swimming next to friendly dolphin with coral plants, clean line art"
       },
       {
         name: "Kelinci Manis di Kebun",
-        easy: "only ONE adorable chubby baby bunny sitting happily and holding one giant smooth carrot. Clean solid white background",
-        medium: "adorable chubby baby bunny sitting next to a simple watering can and one giant sunflower, clean white background",
-        hard: "adorable chubby baby bunny in a simple garden with a cute fence, two carrots, and puffy clouds to color, clean bold outlines"
+        easy: "coloring book page, single adorable chubby baby bunny holding giant carrot, pure white background, bold line art",
+        medium: "coloring book page, adorable chubby baby bunny next to watering can and sunflower, pure white background, line art",
+        hard: "coloring book page, adorable chubby baby bunny in simple garden with picket fence and carrots, clean outlines"
       }
     ];
 
     const spotDiffAiThemes = [
       {
         title: "Toko Roti Beruang Koki",
-        subjectPrompt: "cheerful baby bear wearing chef hat behind a warm cozy cartoon bakery counter with cupcakes and clock",
+        subjectPrompt: "two side by side panels spot the difference puzzle, cheerful baby bear wearing chef hat behind a bakery counter with cupcakes, colorful 3D cartoon",
         diffDefs: [
           "[Warna] Topi koki beruang: Putih di Gambar A berganti menjadi merah di Gambar B",
           "[Bentuk] Hiasan kue: Ceri bulat di Gambar A berganti menjadi bintang di Gambar B",
@@ -1232,7 +1265,7 @@ Format Output JSON:
       },
       {
         title: "Kelinci Manis di Kebun Ceria",
-        subjectPrompt: "adorable baby bunny in gardener apron holding a giant carrot, with butterfly and colorful flowers",
+        subjectPrompt: "two side by side panels spot the difference puzzle, adorable baby bunny in gardener apron holding a carrot with butterfly and flowers, colorful 3D cartoon",
         diffDefs: [
           "[Warna] Kupu-kupu: Sayap biru di Gambar A berganti menjadi kuning di Gambar B",
           "[Bentuk] Pita di telinga: Pita kupu-kupu di Gambar A berganti jadi bintang di Gambar B",
@@ -1243,7 +1276,7 @@ Format Output JSON:
       },
       {
         title: "Astronot Cilik di Bulan",
-        subjectPrompt: "cute toddler astronaut in spacesuit on colorful moon surface next to a smiling star and ringed planet",
+        subjectPrompt: "two side by side panels spot the difference puzzle, cute toddler astronaut on moon surface next to smiling star and planet, colorful 3D cartoon",
         diffDefs: [
           "[Warna] Bendera di bulan: Merah di Gambar A berganti menjadi hijau cerah di Gambar B",
           "[Bentuk] Antena helm: Bulat di Gambar A berganti menjadi bentuk bintang di Gambar B",
@@ -1423,10 +1456,7 @@ Negative prompt: mechanical clutter, hoses, wires, micro-buttons, realistic shad
         const sceneTitle = sceneObj.title;
         const activeDiffs = sceneObj.diffDefs.slice(0, diffCount);
 
-        const spotDiffPrompt = `Charming 3D cartoon "Spot the Difference" activity for kids.
-Side-by-side dual panels: Panel A on the left and Panel B on the right with a clean vertical line.
-Subject: Vibrant colorful 3D animated scene of ${sceneObj.subjectPrompt}.
-Panel B features exactly ${diffCount} differences in color, shape, and position. Aspect ratio: 4:3.`;
+        const spotDiffPrompt = `${sceneObj.subjectPrompt}. Side by side comparison with ${diffCount} differences. Clean cute colorful 3D style.`;
 
         page.innerHTML = `
           <div class="tk-banner-wrap">
