@@ -1049,7 +1049,7 @@
         );
       }
 
-      // Panggil langsung model gemini-2.5-flash-image (Nano Banana resmi Free Tier)
+      // Gunakan nama model resmi gemini-2.5-flash-image (bukan -preview-)
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`;
       const payload = {
         contents: [{ role: 'user', parts: [{ text: safePrompt }] }],
