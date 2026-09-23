@@ -562,7 +562,7 @@
           <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase mb-2">
             <span>🚀 Kurikulum Merdeka AI</span>
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>
-            <span>Edisi 2026</span>
+            <span>Edisi Cloud Ready</span>
           </div>
 
           <p class="text-white/85 text-xs sm:text-sm mt-1 max-w-xl text-left">
@@ -591,28 +591,28 @@
       </div>
 
       <div class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 mb-4 leading-relaxed">
-        <strong>💡 Mode Cloud Aktif:</strong> Saat aplikasi ini di-deploy di Vercel, panggilan AI otomatis dialihkan ke endpoint serverless Vercel (kunci API aman di cloud). Anda tidak wajib mengisi form di bawah ini kecuali ingin menghubungkan ke kunci kustom pribadi.
+        <strong>💡 Mode Cloud Aktif:</strong> Aplikasi ini dirancang memanggil endpoint serverless Vercel (kunci API aman di cloud). Jika Anda belum menyetel <code>GEMINI_API_KEY</code> di dashboard Vercel, Anda dapat menempelkan API key langsung di bawah ini agar aplikasi langsung bekerja tanpa menunggu deploy ulang.
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="bg-indigo-50/50 hover:bg-white p-4 rounded-xl border-2 border-indigo-200 transition-colors">
           <div class="flex items-center justify-between mb-1">
-            <label class="text-xs font-bold text-slate-800">Opsional: Google Gemini API Key Langsung</label>
-            <span class="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-bold">Manual</span>
+            <label class="text-xs font-bold text-slate-800">Google Gemini API Key Langsung</label>
+            <span class="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-bold">Instan</span>
           </div>
           <p class="text-xs text-slate-600 mb-2.5">
-            Dapatkan API Key di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-600 underline font-semibold">Google AI Studio</a> jika ingin menimpa kunci bawaan:
+            Dapatkan API Key di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-600 underline font-semibold">Google AI Studio</a>:
           </p>
           <input type="password" id="customApiKey" placeholder="AIzaSy... atau AQ.Ab..." class="w-full text-xs font-mono p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          <span class="text-[11px] text-slate-500 mt-1 block">Tersimpan otomatis di peramban komputer Anda.</span>
+          <span class="text-[11px] text-slate-500 mt-1 block">Tersimpan aman di peramban Anda untuk semua sesi.</span>
         </div>
 
         <div class="bg-slate-50 hover:bg-white p-4 rounded-xl border border-slate-200 transition-colors">
           <div class="flex items-center justify-between mb-1">
             <label class="text-xs font-bold text-slate-700">Opsional: URL Backend Proxy Kustom</label>
-            <span class="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded font-bold">Custom Host</span>
+            <span class="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded font-bold">Host</span>
           </div>
-          <p class="text-xs text-slate-500 mb-2.5">Kosongkan jika berjalan di Vercel (akan otomatis memakai origin host saat ini).</p>
+          <p class="text-xs text-slate-500 mb-2.5">Biarkan kosong saat berjalan di Vercel.</p>
           <input type="text" id="customBackendUrl" placeholder="https://worksheetgenius-app.vercel.app" class="w-full text-xs font-mono p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
         </div>
       </div>
@@ -959,7 +959,7 @@
         `;
       } else if (type === "error") {
         container.innerHTML = `
-          <div class="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-900 text-xs font-medium leading-relaxed">
+          <div class="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-900 text-xs font-medium leading-relaxed">
             ${msg}
           </div>
         `;
@@ -1003,7 +1003,9 @@
     async function callBackendImage(promptText, aspectRatio = "3:4") {
       const customBackend = localStorage.getItem('ws_backend_custom_url');
       const isLocalOrigin = window.location.protocol.startsWith('http') && !window.location.host.includes('googleusercontent');
+      let backendErrorMsg = null;
 
+      // 1. Coba Serverless Backend Vercel / Cloud Proxy
       if (customBackend || isLocalOrigin || isCloudHosted()) {
         const targetUrl = getBackendEndpoint('/api/generate-image');
         try {
@@ -1016,13 +1018,25 @@
           if (response.ok) {
             const resData = await response.json();
             if (resData.imageUrl) return resData.imageUrl;
+          } else {
+            const errJson = await response.json().catch(() => ({}));
+            backendErrorMsg = errJson.error || `Serverless status ${response.status}`;
           }
         } catch (err) {
-          console.debug("Backend proxy unreachable, checking direct fallback...", err);
+          backendErrorMsg = err.message;
         }
       }
 
+      // 2. Jika Serverless belum dikonfigurasi GEMINI_API_KEY-nya, cek apakah ada API Key langsung di peramban
       const apiKey = getSavedApiKey();
+      if (!apiKey) {
+        throw new Error(
+          (backendErrorMsg ? `⚠️ Serverless Cloud Error: ${backendErrorMsg}<br>` : '') +
+          "Kunci <code>GEMINI_API_KEY</code> belum aktif di dashboard Vercel.<br>" +
+          "<strong>Solusi Cepat:</strong> Klik tombol <strong>⚙️ Koneksi AI</strong> di kanan atas, tempelkan API Key Anda, lalu klik <strong>💾 Simpan Konfigurasi</strong>."
+        );
+      }
+
       const safePrompt = promptText
         .replace(/\bdisney princess\b/gi, "charming storybook royal fairytale princess")
         .replace(/\bdisney\b/gi, "whimsical storybook cartoon")
@@ -1071,12 +1085,13 @@
         }
       }
 
-      throw new Error(lastError || "Tidak dapat memproses gambar AI. Pastikan GEMINI_API_KEY terpasang di Vercel atau form Koneksi AI.");
+      throw new Error(lastError || "Tidak dapat memproses gambar AI. Periksa kembali API Key Google Anda.");
     }
 
     async function fetchBackendWorksheet(systemPrompt) {
       const customBackend = localStorage.getItem('ws_backend_custom_url');
       const isLocalOrigin = window.location.protocol.startsWith('http') && !window.location.host.includes('googleusercontent');
+      let backendErrorMsg = null;
 
       if (customBackend || isLocalOrigin || isCloudHosted()) {
         const targetUrl = getBackendEndpoint('/api/generate-worksheet');
@@ -1090,13 +1105,24 @@
           if (response.ok) {
             const resData = await response.json();
             if (resData.data) return resData.data;
+          } else {
+            const errJson = await response.json().catch(() => ({}));
+            backendErrorMsg = errJson.error || `Serverless status ${response.status}`;
           }
         } catch (err) {
-          console.debug("Backend proxy unreachable, trying direct API...", err);
+          backendErrorMsg = err.message;
         }
       }
 
       const apiKey = getSavedApiKey();
+      if (!apiKey) {
+        throw new Error(
+          (backendErrorMsg ? `⚠️ Serverless Cloud Error: ${backendErrorMsg}<br>` : '') +
+          "Kunci <code>GEMINI_API_KEY</code> belum aktif di dashboard Vercel.<br>" +
+          "<strong>Solusi Cepat:</strong> Klik tombol <strong>⚙️ Koneksi AI</strong> di kanan atas, tempelkan API Key Anda, lalu klik <strong>💾 Simpan Konfigurasi</strong>."
+        );
+      }
+
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
       const payload = {
         contents: [{ role: "user", parts: [{ text: systemPrompt }] }],
@@ -1368,7 +1394,9 @@ Negative prompt: mechanical clutter, hoses, wires, micro-buttons, realistic shad
               loader.innerHTML = `
                 <div style="color:#b91c1c; padding:20px; font-size:0.92rem; line-height:1.5;">
                   <strong>❌ Info Gambar AI:</strong><br>
-                  <code style="font-size:0.82rem; background:#fee2e2; padding:6px 10px; border-radius:6px; display:inline-block; margin-top:8px;">${err.message}</code>
+                  <div style="font-size:0.82rem; background:#fee2e2; padding:10px 14px; border-radius:8px; display:inline-block; margin-top:8px; text-align:left;">
+                    ${err.message}
+                  </div>
                 </div>
               `;
             }
@@ -1449,7 +1477,9 @@ Panel B features exactly ${diffCount} differences in color, shape, and position.
               loader.innerHTML = `
                 <div style="color:#b91c1c; padding:20px; font-size:0.92rem; line-height:1.5;">
                   <strong>❌ Info Gambar AI:</strong><br>
-                  <code style="font-size:0.82rem; background:#fee2e2; padding:6px 10px; border-radius:6px; display:inline-block; margin-top:8px;">${err.message}</code>
+                  <div style="font-size:0.82rem; background:#fee2e2; padding:10px 14px; border-radius:8px; display:inline-block; margin-top:8px; text-align:left;">
+                    ${err.message}
+                  </div>
                 </div>
               `;
             }
