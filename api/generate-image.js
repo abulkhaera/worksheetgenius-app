@@ -13,13 +13,12 @@ module.exports = async (req, res) => {
       });
     }
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`;
+    const apiUrl = `[https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=$](https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=$){apiKey}`;
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: "image/jpeg" }
+        contents: [{ parts: [{ text: prompt }] }]
       })
     });
 
