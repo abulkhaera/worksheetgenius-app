@@ -656,7 +656,14 @@
         <!-- 2. Mata Pelajaran / Tema -->
         <div class="flex flex-col gap-1.5">
           <label for="subject" class="text-xs font-bold text-slate-700">2. Mata Pelajaran / Tema</label>
-          <select id="subject" class="p-3 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm transition"></select>
+          <select id="subject" class="p-3 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm transition">
+            <option value="Acak" selected>🎲 Acak (Bervariasi Tiap Lembar)</option>
+            <option value="Belajar Mewarnai">Belajar Mewarnai</option>
+            <option value="Cari Perbedaan">Cari Perbedaan</option>
+            <option value="Ikuti Polanya (Bentuk & Karakter)">Ikuti Polanya (Bentuk & Karakter)</option>
+            <option value="Tarik Garis & Pasangkan">Tarik Garis & Pasangkan</option>
+            <option value="Menghitung Ceria">Menghitung Ceria</option>
+          </select>
         </div>
 
         <!-- 3. Jumlah Worksheet -->
@@ -1070,55 +1077,6 @@
       }
 
       throw new Error("Gambar tidak dapat dibuat oleh Google Gemini Nano Banana.");
-    }
-        } catch (err) {
-          console.warn('Backend endpoint unreachable, trying direct Gemini call...', err);
-        }
-      }
-
-      // 2. Direct Gemini Call dari browser menggunakan Google API Key
-      if (!apiKey) {
-        throw new Error(
-          "Kunci Gemini API Key diperlukan untuk melukis gambar kualitas tinggi. " +
-          "Silakan klik tombol <strong>⚙️ Koneksi AI</strong> di kanan atas dan masukkan API Key Anda."
-        );
-      }
-
-      const geminiImageModels = ['gemini-2.5-flash-image', 'gemini-3.1-flash-image'];
-      let lastErr = '';
-
-      for (const model of geminiImageModels) {
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-        const payload = {
-          contents: [{ role: 'user', parts: [{ text: safePrompt }] }],
-          generationConfig: {
-            responseModalities: ['IMAGE'],
-            imageConfig: { aspectRatio: aspectRatio }
-          }
-        };
-
-        try {
-          const res = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-
-          if (res.ok) {
-            const data = await res.json();
-            const part = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
-            if (part && part.inlineData?.data) {
-              return `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
-            }
-          } else {
-            lastErr = await res.text();
-          }
-        } catch (e) {
-          lastErr = e.message;
-        }
-      }
-
-      throw new Error(`Google Gemini Image Error: ${lastErr}`);
     }
 
     async function fetchBackendWorksheet(systemPrompt) {
@@ -1899,6 +1857,9 @@ Negative prompt: mechanical clutter, hoses, wires, micro-buttons, realistic shad
       updateSubjects();
       updateConnectionIndicator();
     });
+
+    // Inisialisasi awal saat script dimuat
+    updateSubjects();
   </script>
 </body>
 </html>
