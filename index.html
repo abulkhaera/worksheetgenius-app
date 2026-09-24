@@ -290,4 +290,203 @@
       if (!res.ok) throw new Error(`Google API Error: [HTTP ${res.status}]`);
       const data = await res.json();
       const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-      return JSON.parse(rawText.trim().replace(/^```json\s*/i, "").replace(/^
+      return JSON.parse(rawText.trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/i, ""));
+    }
+
+    function buildProductionSystemPrompt(level, subject, difficulty, index) {
+      return `Role: Tim Ahli Asesmen Pembelajaran Kurikulum Merdeka Indonesia. Output WAJIB JSON MURNI.
+Jenjang: ${level.toUpperCase()}, Mata Pelajaran: ${subject}, Tingkat Kesulitan Bloom Taxonomy: ${difficulty}, Lembar Ke: #${index}
+Format Output JSON:
+{
+  "title": "Judul Lembar Kerja Edukatif",
+  "objective": "Tujuan Pembelajaran Kurikulum Merdeka",
+  "instructions": "Petunjuk pengerjaan bagi peserta didik",
+  "questions": [
+    { "id": 1, "prompt": "Soal nomor 1...", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "answer": "A" }
+  ]
+}`;
+    }
+
+    function renderPaudInteractiveLayout(activityType, selectedSubject, resolvedDifficulty, resolvedTheme) {
+      let contentHTML = "";
+      if (activityType === "pola") {
+        contentHTML = `
+          <div class="tk-instruction-pill">👀 TEMA: ${resolvedTheme.toUpperCase()} - LINGKARI GAMBAR YANG TEPAT!</div>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            ${[1,2,3,4].map(num => `
+              <div style="display:flex; align-items:center; justify-content:space-between; border:2px solid #bae6fd; padding:12px; border-radius:14px; background:#fff;">
+                <div style="background:#ec4899; color:#fff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; margin-right:10px;">${num}</div>
+                <div style="font-size:1.8rem; flex:1; display:flex; gap:10px;"><span>🚀</span><span>🪐</span><span>🚀</span><span>🪐</span><span style="border:2px dashed #0284c7; padding:0 8px; border-radius:8px;">?</span></div>
+                <div style="display:flex; gap:8px;"><span style="border:1px solid #7dd3fc; padding:6px 12px; border-radius:8px; font-size:1.4rem;">🚀</span><span style="border:1px solid #7dd3fc; padding:6px 12px; border-radius:8px; font-size:1.4rem;">🪐</span></div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } else if (activityType === "tarikGaris") {
+        contentHTML = `
+          <div class="tk-instruction-pill">✏️ TEMA: ${resolvedTheme.toUpperCase()} - TARIK GARIS PASANGAN!</div>
+          <div style="display:flex; justify-content:space-between; gap:20px; padding:10px;">
+            <div style="display:flex; flex-direction:column; gap:14px; flex:1;">
+              <div style="padding:12px; border:2px solid #cbd5e1; border-radius:12px; display:flex; justify-content:space-between; align-items:center; font-weight:bold;">🚀 Karakter A <span style="width:14px; height:14px; background:#3b82f6; border-radius:50%; display:inline-block;"></span></div>
+              <div style="padding:12px; border:2px solid #cbd5e1; border-radius:12px; display:flex; justify-content:space-between; align-items:center; font-weight:bold;">🐰 Karakter B <span style="width:14px; height:14px; background:#3b82f6; border-radius:50%; display:inline-block;"></span></div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:14px; flex:1;">
+              <div style="padding:12px; border:2px solid #cbd5e1; border-radius:12px; display:flex; align-items:center; gap:10px; font-weight:bold;"><span style="width:14px; height:14px; background:#3b82f6; border-radius:50%; display:inline-block;"></span> 🥕 Benda B</div>
+              <div style="padding:12px; border:2px solid #cbd5e1; border-radius:12px; display:flex; align-items:center; gap:10px; font-weight:bold;"><span style="width:14px; height:14px; background:#3b82f6; border-radius:50%; display:inline-block;"></span> 🪐 Benda A</div>
+            </div>
+          </div>
+        `;
+      } else {
+        contentHTML = `
+          <div class="tk-instruction-pill">🧮 TEMA: ${resolvedTheme.toUpperCase()} - HITUNG JUMLAH GAMBAR!</div>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            ${[3, 5, 2, 4].map((count, idx) => `
+              <div style="display:flex; align-items:center; justify-content:space-between; border:2px solid #bae6fd; padding:12px; border-radius:14px; background:#fff;">
+                <div style="background:#ec4899; color:#fff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">${idx + 1}</div>
+                <div style="font-size:1.8rem; flex:1; padding-left:14px;">${Array(count).fill("⭐").join(' ')}</div>
+                <div style="width:40px; height:40px; border:2px solid #0284c7; border-radius:8px;"></div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      const diffClass = resolvedDifficulty === "Mudah" ? "diff-mudah" : (resolvedDifficulty === "Sulit" ? "diff-sulit" : "diff-sedang");
+
+      return `
+        <div style="text-align:center; margin-bottom:12px;">
+          <div class="diff-pill ${diffClass}">🎯 KESULITAN: ${resolvedDifficulty.toUpperCase()}</div>
+          <div class="tk-banner"><h2>${selectedSubject.toUpperCase()}</h2></div>
+        </div>
+        <div class="tk-student-info"><span>Nama: _______________________</span><span>Usia/Kelas: _________</span></div>
+        ${contentHTML}
+      `;
+    }
+
+    async function generateWorksheetsAI() {
+      const level = document.getElementById("jenjang").value;
+      const rawSubject = document.getElementById("subject").value;
+      const count = parseInt(document.getElementById("count").value) || 1;
+      const rawDifficulty = document.getElementById("difficulty").value;
+      const rawTheme = document.getElementById("theme").value;
+      const output = document.getElementById("output");
+      const statusBox = document.getElementById("statusContainer");
+
+      output.innerHTML = "";
+      statusBox.innerHTML = `<div style="padding:12px; background:#e0e7ff; color:#3730a3; border-radius:12px; font-weight:bold; font-size:0.85rem; display:flex; align-items:center; gap:10px;"><div class="spinner" style="width:20px; height:20px; border-width:2px;"></div> Sedang memproses lembar kerja via Google Gemini...</div>`;
+
+      try {
+        for (let i = 1; i <= count; i++) {
+          // Resolve Acak Subject
+          let resolvedSubject = rawSubject;
+          if (resolvedSubject === "Acak") {
+            const list = subjectMapping[level] || subjectMapping['tk'];
+            resolvedSubject = list[(i - 1) % list.length];
+          }
+
+          // Resolve Acak Difficulty
+          let resolvedDifficulty = rawDifficulty;
+          if (resolvedDifficulty === "Acak") {
+            const diffs = ["Mudah", "Sedang", "Sulit"];
+            resolvedDifficulty = diffs[(i - 1) % diffs.length];
+          }
+
+          // Resolve Acak Theme
+          let resolvedTheme = rawTheme;
+          if (resolvedTheme === "Acak") {
+            resolvedTheme = themeList[(i - 1) % themeList.length];
+          }
+
+          const page = document.createElement("div");
+          page.className = `ws-page ${level === 'paud' || level === 'tk' ? 'ws-paud-tk' : (level === 'sd' ? 'ws-sd' : 'ws-smp-sma')}`;
+
+          if (level === "paud" || level === "tk") {
+            const isImageActivity = resolvedSubject.includes("Mewarnai") || resolvedSubject.includes("Perbedaan");
+
+            if (isImageActivity) {
+              const isColoring = resolvedSubject.includes("Mewarnai");
+              
+              let promptDetail = "clean vector coloring book page for toddlers, bold thick black outline, clear enclosed shapes, pure white background #ffffff, cute character floating in space with planets, no shading, no color fill";
+              if (!isColoring) {
+                let diffCount = resolvedDifficulty === "Mudah" ? 3 : (resolvedDifficulty === "Sulit" ? 7 : 5);
+                promptDetail = `side-by-side spot the difference puzzle game for kids, theme: ${resolvedTheme}, 3d cgi cartoon style, exactly ${diffCount} differences, 4:3 aspect ratio`;
+              } else {
+                promptDetail = `clean vector coloring book page for toddlers, theme: ${resolvedTheme}, level: ${resolvedDifficulty}, bold thick black outline, clear enclosed shapes, pure white background #ffffff, no shading, no color fill`;
+              }
+
+              const diffClass = resolvedDifficulty === "Mudah" ? "diff-mudah" : (resolvedDifficulty === "Sulit" ? "diff-sulit" : "diff-sedang");
+
+              page.innerHTML = `
+                <div style="text-align:center; margin-bottom:12px;">
+                  <div class="diff-pill ${diffClass}">🎯 KESULITAN: ${resolvedDifficulty.toUpperCase()}</div>
+                  <div class="tk-banner"><h2>${resolvedSubject.toUpperCase()}</h2></div>
+                </div>
+                <div style="text-align:center; font-size:0.85rem; font-weight:700; color:#475569; margin-bottom:12px;">TEMA: ${resolvedTheme.toUpperCase()}</div>
+                <div class="ai-image-frame">
+                  <div id="loader_${i}" style="display:flex; flex-direction:column; align-items:center; gap:10px; color:#0284c7; font-weight:bold; padding:20px;">
+                    <div class="spinner"></div><span>Melukis visual murni dengan Google Gemini AI...</span>
+                  </div>
+                  <img id="img_${i}" class="ai-generated-img" style="display:none;" />
+                </div>
+              `;
+              output.appendChild(page);
+
+              const imgUrl = await callBackendImage(promptDetail);
+              const img = document.getElementById(`img_${i}`);
+              const loader = document.getElementById(`loader_${i}`);
+              if (img && loader) {
+                img.src = imgUrl; loader.style.display = "none"; img.style.display = "block";
+              }
+            } else {
+              let actType = "pola";
+              if (resolvedSubject.includes("Tarik Garis")) actType = "tarikGaris";
+              else if (resolvedSubject.includes("Menghitung")) actType = "counting";
+
+              page.innerHTML = renderPaudInteractiveLayout(actType, resolvedSubject, resolvedDifficulty, resolvedTheme);
+              output.appendChild(page);
+            }
+          } else {
+            const systemPrompt = buildProductionSystemPrompt(level, resolvedSubject, resolvedDifficulty, i);
+            const aiData = await fetchBackendWorksheet(systemPrompt);
+
+            const diffClass = resolvedDifficulty === "Mudah" ? "diff-mudah" : (resolvedDifficulty === "Sulit" ? "diff-sulit" : "diff-sedang");
+
+            page.innerHTML = `
+              <div style="border-bottom:2px solid #3b82f6; padding-bottom:12px; margin-bottom:16px;">
+                <div class="diff-pill ${diffClass}">🎯 KESULITAN: ${resolvedDifficulty.toUpperCase()}</div>
+                <h2 style="font-size:1.5rem; color:#1d4ed8; font-weight:800;">${aiData.title || resolvedSubject}</h2>
+              </div>
+              <div style="background:#f0fdf4; border-left:4px solid #22c55e; padding:10px; margin-bottom:20px; font-weight:bold; font-size:0.85rem; color:#15803d;">${aiData.instructions || 'Kerjakan dengan teliti.'}</div>
+              <div>
+                ${(aiData.questions || []).map(q => `
+                  <div class="q-item">
+                    <strong>${q.id}.${q.prompt}</strong>
+                    <div class="q-options">${(q.options || []).map(opt => `<div>${opt}</div>`).join('')}</div>
+                  </div>
+                `).join('')}
+              </div>
+            `;
+            output.appendChild(page);
+          }
+        }
+        statusBox.innerHTML = `<div style="padding:12px; background:#dcfce7; color:#15803d; border-radius:12px; font-weight:bold; font-size:0.85rem;">✅ Berhasil membuat lembar kerja! Klik '📥 Download PDF (A4)' untuk mengunduh.</div>`;
+      } catch (err) {
+        statusBox.innerHTML = `<div style="padding:12px; background:#fee2e2; color:#b91c1c; border-radius:12px; font-weight:bold; font-size:0.85rem;">${err.message}</div>`;
+      }
+    }
+
+    function downloadWorksheetsPDF() {
+      const output = document.getElementById("output");
+      html2pdf().set({
+        margin: [8, 6, 8, 6],
+        filename: 'WorksheetGenius-A4.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      }).from(output).save();
+    }
+
+    document.addEventListener('DOMContentLoaded', updateSubjects);
+  </script>
+</body>
+</html>
