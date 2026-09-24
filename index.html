@@ -6,157 +6,142 @@
   <title>WorksheetGenius.id - Generator Lembar Kerja Edukasi</title>
   
   <link rel="icon" type="image/png" href="Logo.png" id="favIcon">
-  <link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)">
-  <link rel="preconnect" href="[https://fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
-  <link href="[https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap](https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap)" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Nunito:wght@600;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
   
-  <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
-  <script src="[https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js](https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js)"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient(135deg, #f0f4ff 0%, #f8fafc 50%, #f1f5f9 100%); min-height: 100vh; color: #0f172a; }
-    .glass-panel { background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgba(226, 232, 240, 0.85); }
-    .glass-header { background: linear-gradient(135deg, #3730a3 0%, #4338ca 40%, #2563eb 100%); box-shadow: 0 10px 25px -5px rgba(55, 48, 163, 0.25); }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; color: #0f172a; min-height: 100vh; padding: 24px 16px; }
     
-    .brand-logo-card { display: inline-flex; align-items: center; gap: 14px; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 8px 20px 8px 12px; border-radius: 20px; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1); }
-    .brand-logo-wrapper { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.2)); }
-    .brand-logo-wrapper img { width: 100%; height: 100%; object-fit: contain; }
-
-    .ws-page { background: #ffffff; width: 100%; max-width: 210mm; min-height: 297mm; padding: 16mm 14mm; box-shadow: 0 12px 35px -8px rgba(15, 23, 42, 0.12); position: relative; page-break-after: always; box-sizing: border-box; margin: 0 auto 28px auto; border-radius: 12px; }
+    .container { max-width: 1100px; margin: 0 auto; }
     
-    .diff-pill { font-size: 0.76rem; font-weight: 800; padding: 4px 12px; border-radius: 9999px; letter-spacing: 0.5px; text-transform: uppercase; display: inline-flex; align-items: center; gap: 5px; margin-bottom: 8px; }
-    .diff-mudah { background: #dcfce7; color: #15803d; border: 1.5px solid #86efac; }
-    .diff-sedang { background: #fef9c3; color: #a16207; border: 1.5px solid #fde047; }
-    .diff-sulit { background: #fee2e2; color: #b91c1c; border: 1.5px solid #fca5a5; }
+    .header-card { 
+      background: linear-gradient(135deg, #3730a3 0%, #2563eb 100%); 
+      color: white; 
+      border-radius: 20px; 
+      padding: 28px; 
+      margin-bottom: 24px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      flex-wrap: wrap; 
+      gap: 16px; 
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.2); 
+    }
+    
+    .brand-box { display: flex; align-items: center; gap: 14px; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); padding: 8px 18px; border-radius: 16px; margin-bottom: 12px; }
+    .brand-box img { height: 44px; width: auto; object-fit: contain; }
+    .brand-title { font-size: 1.5rem; font-weight: 800; }
+    .brand-title span { color: #fde047; }
+    .brand-sub { font-size: 0.7rem; text-transform: uppercase; opacity: 0.9; font-weight: 600; }
+    
+    .pill-badge { display: inline-block; background: rgba(255, 255, 255, 0.2); font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; margin-bottom: 8px; }
+    .desc-text { font-size: 0.85rem; opacity: 0.9; max-width: 600px; line-height: 1.5; }
+    
+    .btn-key { background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.4); color: white; padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
+    .btn-key:hover { background: rgba(255, 255, 255, 0.3); }
 
-    .ws-paud-tk { font-family: 'Fredoka', cursive, sans-serif; border: 8px solid #84cc16; border-radius: 26px; background-color: #ffffff; color: #1e293b; padding: 22px; position: relative; background-image: radial-gradient(#f0fdf4 18%, transparent 19%); background-size: 22px 22px; }
-    .ws-paud-tk .tk-banner-wrap { display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 12px; }
-    .ws-paud-tk .tk-banner { background: linear-gradient(180deg, #fef08a 0%, #facc15 100%); border: 3.5px solid #d97706; border-radius: 40px; padding: 8px 36px; text-align: center; box-shadow: 0 4px 0 #b45309; display: inline-flex; align-items: center; gap: 8px; }
-    .ws-paud-tk .tk-banner h2 { font-size: 1.65rem; font-weight: 700; color: #1d4ed8; letter-spacing: 0.5px; text-transform: uppercase; text-shadow: 1px 1px 0 #fff; }
-    .ws-paud-tk .tk-student-info { background: #eff6ff; border: 2px solid #60a5fa; border-radius: 24px; padding: 8px 24px; display: flex; justify-content: space-between; margin-bottom: 14px; font-size: 1.05rem; color: #1e40af; font-weight: 600; }
-    .ws-paud-tk .tk-instruction-pill { background: #ffe4e6; border: 2px solid #fda4af; border-radius: 22px; padding: 8px 18px; text-align: center; font-size: 1.05rem; font-weight: 700; color: #be123c; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .panel-card { background: white; border-radius: 20px; padding: 28px; border: 1px solid #e2e8f0; margin-bottom: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; margin-bottom: 20px; }
+    .panel-title { font-size: 1.1rem; font-weight: 800; color: #1e293b; }
+    
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 20px; }
+    .field-group { display: flex; flex-direction: column; gap: 6px; }
+    .field-label { font-size: 0.8rem; font-weight: 700; color: #334155; }
+    
+    select, input[type="number"], input[type="password"] { 
+      width: 100%; 
+      padding: 12px 14px; 
+      background: #f8fafc; 
+      border: 1px solid #cbd5e1; 
+      border-radius: 12px; 
+      font-size: 0.88rem; 
+      font-weight: 600; 
+      color: #0f172a; 
+      outline: none; 
+    }
+    select:focus, input:focus { border-color: #4338ca; background: #fff; }
 
-    .ai-image-frame { border: 4px solid #38bdf8; border-radius: 22px; background: #ffffff; padding: 0; margin-bottom: 14px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; box-shadow: 0 4px 14px rgba(56, 189, 248, 0.15); overflow: hidden; width: 100%; }
-    .ai-generated-img { width: 100%; height: auto; max-height: 520px; object-fit: contain; border-radius: 18px; background: #ffffff; display: block; }
+    .btn-row { display: flex; gap: 12px; padding-top: 12px; border-top: 1px solid #f1f5f9; }
+    .btn-primary { flex: 1; background: #4338ca; color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 800; font-size: 0.9rem; cursor: pointer; transition: 0.2s; text-align: center; }
+    .btn-primary:hover { background: #3730a3; }
+    .btn-success { background: #059669; color: white; border: none; padding: 14px 24px; border-radius: 12px; font-weight: 800; font-size: 0.9rem; cursor: pointer; transition: 0.2s; }
+    .btn-success:hover { background: #047857; }
 
-    .pattern-row { display: flex; align-items: center; justify-content: space-between; background: #ffffff; border: 2.5px solid #bae6fd; border-radius: 16px; padding: 12px 18px; margin-bottom: 14px; }
-    .pattern-num { background: #ec4899; color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; margin-right: 12px; flex-shrink: 0; }
-    .pattern-sequence { display: flex; align-items: center; gap: 12px; font-size: 2.4rem; flex: 1; }
-    .pattern-q-box { width: 52px; height: 52px; border: 3px dashed #0284c7; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: #0284c7; background: #f0f9ff; font-weight: bold; }
-    .pattern-options-divider { width: 2px; height: 44px; border-left: 2px dashed #cbd5e1; margin: 0 16px; }
-    .pattern-options-group { display: flex; gap: 10px; }
-    .pattern-opt-box { width: 52px; height: 52px; border: 2px solid #7dd3fc; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2.1rem; background: #ffffff; }
+    .ws-page { background: white; width: 100%; max-width: 210mm; min-height: 297mm; padding: 18mm 16mm; margin: 0 auto 28px auto; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); }
+    .diff-pill { font-size: 0.72rem; font-weight: 800; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; background: #fef9c3; color: #a16207; border: 1px solid #fde047; display: inline-block; margin-bottom: 10px; }
 
-    .match-table { display: flex; justify-content: space-between; gap: 24px; padding: 12px 16px; }
-    .match-col { display: flex; flex-direction: column; gap: 16px; flex: 1; }
-    .match-card { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; border-radius: 16px; border: 2.5px solid #cbd5e1; background: #ffffff; font-size: 1.35rem; font-weight: 700; color: #334155; }
-    .match-dot { width: 18px; height: 18px; background-color: #3b82f6; border: 3px solid #bfdbfe; border-radius: 50%; flex-shrink: 0; }
+    .ws-paud-tk { border: 8px solid #84cc16; border-radius: 24px; font-family: 'Fredoka', cursive; padding: 24px; }
+    .tk-banner { background: #facc15; border: 3px solid #d97706; padding: 8px 28px; border-radius: 30px; color: #1d4ed8; font-weight: 700; font-size: 1.5rem; text-align: center; margin-bottom: 16px; }
+    .tk-student-info { background: #eff6ff; border: 2px solid #60a5fa; border-radius: 16px; padding: 10px 20px; display: flex; justify-content: space-between; font-weight: 700; color: #1e40af; margin-bottom: 16px; }
+    .tk-instruction-pill { background: #ffe4e6; border: 2px solid #fda4af; padding: 8px 16px; border-radius: 20px; text-align: center; font-weight: 700; color: #be123c; margin-bottom: 20px; }
+    
+    .ai-image-frame { border: 4px solid #38bdf8; border-radius: 20px; min-height: 440px; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+    .ai-generated-img { width: 100%; height: auto; max-height: 520px; object-fit: contain; }
 
-    .ws-sd { font-family: 'Nunito', sans-serif; border: 5px solid #3b82f6; border-radius: 16px; background-color: #ffffff; color: #1e293b; padding: 20px; }
-    .ws-sd .ws-header { border-bottom: 3.5px solid #3b82f6; padding-bottom: 14px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: flex-start; }
-    .ws-sd .ws-title { font-size: 1.65rem; color: #1d4ed8; font-weight: 800; }
-    .ws-sd .ws-instructions { background: #f0fdf4; border-left: 5px solid #22c55e; padding: 10px 16px; font-weight: 700; color: #15803d; margin-bottom: 22px; font-size: 0.98rem; }
-    .ws-sd .q-item { margin-bottom: 18px; padding: 12px 16px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 1.02rem; line-height: 1.6; }
-    .ws-sd .q-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; padding-left: 18px; }
+    .ws-sd { border: 5px solid #3b82f6; border-radius: 16px; font-family: 'Nunito', sans-serif; padding: 24px; }
+    .ws-smp-sma { border: 1px solid #000; font-family: 'Times New Roman', serif; padding: 24px; }
 
-    .ws-smp-sma { font-family: 'Times New Roman', Times, serif; border: 1px solid #000; background-color: #ffffff; color: #000; padding: 20px; }
-    .ws-smp-sma .ws-header { border-bottom: 3px double #000; padding-bottom: 14px; margin-bottom: 18px; text-align: center; }
-    .ws-smp-sma .ws-title { font-size: 1.5rem; font-weight: bold; text-transform: uppercase; margin-bottom: 4px; }
-    .ws-smp-sma .ws-instructions { border: 1px solid #000; padding: 9px; margin-bottom: 22px; font-weight: bold; background: #f9f9f9; }
-    .ws-smp-sma .q-item { margin-bottom: 18px; font-size: 1.05rem; text-align: justify; line-height: 1.5; }
-    .ws-smp-sma .q-options { list-style-type: upper-alpha; margin-left: 24px; margin-top: 6px; }
+    .q-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 14px; font-size: 0.95rem; line-height: 1.6; }
+    .q-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; padding-left: 16px; }
 
-    .spinner { width: 44px; height: 44px; border: 4px solid #bae6fd; border-top-color: #0284c7; border-radius: 50%; animation: spin 1s linear infinite; }
+    .spinner { width: 36px; height: 36px; border: 4px solid #e2e8f0; border-top-color: #4338ca; border-radius: 50%; animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     @media print {
-      body { background: none !important; padding: 0 !important; }
+      body { background: none; padding: 0; }
       .no-print { display: none !important; }
-      .ws-page { width: 100% !important; max-width: 100% !important; min-height: auto !important; padding: 6mm 8mm !important; box-shadow: none !important; border-radius: 0 !important; margin: 0 0 20px 0 !important; page-break-after: always !important; }
+      .ws-page { box-shadow: none; border-radius: 0; width: 100%; margin: 0; page-break-after: always; }
     }
   </style>
 </head>
-<body class="py-6 px-3 sm:px-6">
+<body>
 
-  <div class="max-w-5xl mx-auto">
-    <header class="glass-header text-white rounded-2xl p-6 sm:p-8 mb-6 shadow-xl relative overflow-hidden no-print">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
-        <div class="flex flex-col items-start text-left">
-          
-          <div class="brand-logo-card mb-3">
-            <div class="brand-logo-wrapper">
-              <img id="mainBrandLogo" src="Logo.png" alt="WorksheetGenius ID Logo" class="w-full h-full object-contain" onerror="this.onerror=null; this.src='Logo_2.png';">
-            </div>
-            <div class="flex flex-col text-left">
-              <span class="text-xl sm:text-2xl font-black tracking-tight leading-none text-white">
-                WorksheetGenius<span class="text-amber-300">.id</span>
-              </span>
-              <span class="text-[11px] font-semibold text-white/80 tracking-wide uppercase mt-1">
-                Generator Lembar Kerja Kurikulum Merdeka
-              </span>
-            </div>
+  <div class="container">
+    <header class="header-card no-print">
+      <div>
+        <div class="brand-box">
+          <img id="mainBrandLogo" src="Logo.png" alt="Logo" onerror="this.style.display='none'">
+          <div>
+            <div class="brand-title">WorksheetGenius<span>.id</span></div>
+            <div class="brand-sub">Generator Lembar Kerja Kurikulum Merdeka</div>
           </div>
-
-          <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase mb-2">
-            <span>🚀 GOOGLE GEMINI 2.5 FLASH</span>
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>
-          </div>
-
-          <p class="text-white/85 text-xs sm:text-sm mt-1 max-w-xl text-left">
-            Buat Lembar Kerja Peserta Didik (LKPD) otomatis berbasis Taksonomi Bloom & Kurikulum Merdeka untuk PAUD hingga SMA.
-          </p>
         </div>
-        
-        <div class="flex items-center gap-3">
-          <button type="button" onclick="toggleBackendSettings()" class="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 backdrop-blur-md px-4 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-sm">
-            <span>⚙️</span>
-            <span>Koneksi AI</span>
-            <span id="connIndicator" class="w-2 h-2 rounded-full bg-emerald-400"></span>
-          </button>
-        </div>
+        <div class="pill-badge">🚀 GOOGLE GEMINI 2.5 FLASH</div>
+        <p class="desc-text">Buat Lembar Kerja Peserta Didik (LKPD) otomatis berbasis Taksonomi Bloom & Kurikulum Merdeka untuk PAUD hingga SMA.</p>
       </div>
+
+      <button type="button" onclick="toggleBackendSettings()" class="btn-key">⚙️ Koneksi AI</button>
     </header>
 
-    <div id="backendSettingsBox" class="hidden glass-panel rounded-2xl p-6 mb-6 shadow-md border-2 border-indigo-200 no-print transition-all duration-300">
-      <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-200">
-        <div class="flex items-center gap-2 text-indigo-900 font-bold text-base">
-          <span>🛠️</span>
-          <span>Pengaturan Google Gemini API Key</span>
-        </div>
-        <button type="button" onclick="toggleBackendSettings()" class="text-slate-400 hover:text-slate-600 text-sm font-semibold">Tutup ✕</button>
+    <div id="backendSettingsBox" class="panel-card no-print" style="display:none; border-color: #6366f1;">
+      <div class="panel-header">
+        <span class="panel-title">🛠️ Pengaturan Google Gemini API Key</span>
+        <button onclick="toggleBackendSettings()" style="background:none; border:none; cursor:pointer; font-weight:bold;">Tutup ✕</button>
       </div>
-
-      <div class="bg-indigo-50/50 p-4 rounded-xl border-2 border-indigo-200">
-        <label class="text-xs font-bold text-slate-800 block mb-1">Google Gemini API Key (Versi Gratis Google AI Studio)</label>
-        <input type="password" id="customApiKey" placeholder="AIzaSy..." class="w-full text-xs font-mono p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-        <span class="text-[11px] text-slate-500 mt-1 block">Tersimpan aman di peramban Anda. Dapatkan API Key gratis di <a href="[https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)" target="_blank" class="text-indigo-600 underline font-semibold">Google AI Studio</a>.</span>
+      <div class="field-group">
+        <label class="field-label">Google Gemini API Key (Versi Gratis Google AI Studio)</label>
+        <input type="password" id="customApiKey" placeholder="AIzaSy...">
+        <span style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Tersimpan aman di peramban Anda. Dapatkan API Key gratis di Google AI Studio.</span>
       </div>
-
-      <div class="flex items-center gap-3 mt-4 pt-3 border-t border-slate-200">
-        <button type="button" onclick="saveSettings()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs py-2 px-4 rounded-lg shadow-sm transition">💾 Simpan Konfigurasi</button>
+      <div style="margin-top: 14px;">
+        <button onclick="saveSettings()" class="btn-primary" style="padding: 10px 20px; width: auto;">💾 Simpan Konfigurasi</button>
       </div>
     </div>
 
-    <!-- Parameter Controls Card -->
-    <div class="glass-panel rounded-2xl p-6 sm:p-7 shadow-lg border border-slate-200/80 mb-8 no-print">
-      <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-200/70">
-        <div class="flex items-center gap-2">
-          <span class="p-2 rounded-xl bg-indigo-50 text-indigo-600 font-bold text-base">📋</span>
-          <div>
-            <h2 class="text-base sm:lg font-bold text-slate-800">Parameter Pembuatan Lembar Kerja</h2>
-            <p class="text-xs text-slate-500">Sesuaikan jenjang, topik kurikulum, dan tingkat kesulitan.</p>
-          </div>
-        </div>
-        <div class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold rounded-lg">
-          <span>✨</span> Auto-Format A4
-        </div>
+    <div class="panel-card no-print">
+      <div class="panel-header">
+        <span class="panel-title">📋 Parameter Pembuatan Lembar Kerja</span>
+        <span style="font-size: 0.75rem; font-weight: 700; color: #d97706; background: #fffbeb; padding: 4px 10px; border-radius: 8px;">✨ Auto-Format A4</span>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
-        
-        <div class="flex flex-col gap-1.5">
-          <label for="jenjang" class="text-xs font-bold text-slate-700">1. Jenjang Pendidikan</label>
-          <select id="jenjang" onchange="updateSubjects()" class="p-3 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm transition">
+      <div class="grid-3">
+        <div class="field-group">
+          <label class="field-label">1. Jenjang Pendidikan</label>
+          <select id="jenjang" onchange="updateSubjects()">
             <option value="paud">PAUD (3-4 tahun)</option>
             <option value="tk" selected>TK (4-6 tahun)</option>
             <option value="sd">SD (Kelas 1 - 6)</option>
@@ -165,32 +150,19 @@
           </select>
         </div>
 
-        <div class="flex flex-col gap-1.5">
-          <label for="subject" class="text-xs font-bold text-slate-700">2. Mata Pelajaran / Tema</label>
-          <select id="subject" class="p-3 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm transition">
-            <option value="Acak" selected>🎲 Acak (Bervariasi Tiap Lembar)</option>
-            <option value="Belajar Mewarnai">Belajar Mewarnai</option>
-            <option value="Cari Perbedaan">Cari Perbedaan</option>
-            <option value="Ikuti Polanya (Bentuk & Karakter)">Ikuti Polanya (Bentuk & Karakter)</option>
-            <option value="Tarik Garis & Pasangkan">Tarik Garis & Pasangkan</option>
-            <option value="Menghitung Ceria">Menghitung Ceria</option>
-          </select>
+        <div class="field-group">
+          <label class="field-label">2. Mata Pelajaran / Tema</label>
+          <select id="subject"></select>
         </div>
 
-        <div class="flex flex-col gap-1.5">
-          <label for="count" class="text-xs font-bold text-slate-700">3. Jumlah Worksheet</label>
-          <div class="relative">
-            <input type="number" id="count" value="1" min="1" max="10" class="w-full p-3 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm transition">
-            <span class="absolute right-3.5 top-3 text-xs font-bold text-slate-400">Lembar</span>
-          </div>
+        <div class="field-group">
+          <label class="field-label">3. Jumlah Worksheet</label>
+          <input type="number" id="count" value="1" min="1" max="10">
         </div>
 
-        <div class="flex flex-col gap-1.5">
-          <label for="difficulty" class="text-xs font-bold text-slate-700 flex items-center justify-between">
-            <span>4. Tingkat Kesulitan</span>
-            <span class="text-[10px] text-indigo-600 font-bold bg-indigo-50 px-1.5 py-0.5 rounded">Bloom Taxonomy</span>
-          </label>
-          <select id="difficulty" class="p-3 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm transition">
+        <div class="field-group">
+          <label class="field-label">4. Tingkat Kesulitan (Bloom Taxonomy)</label>
+          <select id="difficulty">
             <option value="Acak" selected>🎲 Acak (Bervariasi Tiap Lembar)</option>
             <option value="Mudah">Mudah (C1 - C2 / Ceria)</option>
             <option value="Sedang">Sedang (C3 / Terstruktur)</option>
@@ -198,9 +170,9 @@
           </select>
         </div>
 
-        <div class="flex flex-col gap-1.5 sm:col-span-2 lg:col-span-2">
-          <label for="theme" class="text-xs font-bold text-slate-700">5. Tema Karakter PAUD & TK</label>
-          <select id="theme" class="p-3 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm transition">
+        <div class="field-group" style="grid-column: span 2;">
+          <label class="field-label">5. Tema Karakter PAUD & TK</label>
+          <select id="theme">
             <option value="Acak" selected>🎲 Acak (AI Bebas Memilih Otomatis)</option>
             <option value="Putri Kerajaan Ceria">Putri Kerajaan Ceria</option>
             <option value="Pahlawan Super Cilik">Pahlawan Super Cilik</option>
@@ -214,35 +186,28 @@
             <option value="Transportasi & Mesin Ceria">Transportasi & Mesin Ceria</option>
           </select>
         </div>
-
       </div>
 
-      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-3 border-t border-slate-200/70">
-        <button id="btnGenerate" onclick="generateWorksheetsAI()" class="flex-1 inline-flex items-center justify-center gap-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all text-sm">
-          <span>✨</span>
-          <span>Buat Lembar Kerja Siswa</span>
-        </button>
-
-        <button id="btnDownload" onclick="downloadWorksheetsPDF()" class="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-emerald-200 hover:shadow-emerald-300 transition-all text-sm">
-          <span>📥</span>
-          <span>Download PDF (A4)</span>
-        </button>
+      <div class="btn-row">
+        <button id="btnGenerate" onclick="generateWorksheetsAI()" class="btn-primary">✨ Buat Lembar Kerja Siswa</button>
+        <button id="btnDownload" onclick="downloadWorksheetsPDF()" class="btn-success">📥 Download PDF (A4)</button>
       </div>
 
-      <div id="statusContainer" class="mt-4 empty:hidden"></div>
+      <div id="statusContainer" style="margin-top: 16px;"></div>
     </div>
 
-    <div id="output" class="flex flex-col gap-8 items-center"></div>
-
+    <div id="output"></div>
   </div>
 
   <script>
     function getSavedApiKey() { return (localStorage.getItem('ws_gemini_direct_key') || '').trim(); }
+    
     function toggleBackendSettings() {
       const box = document.getElementById('backendSettingsBox');
-      box.classList.toggle('hidden');
-      if (!box.classList.contains('hidden')) document.getElementById('customApiKey').value = getSavedApiKey();
+      box.style.display = box.style.display === 'none' ? 'block' : 'none';
+      if (box.style.display === 'block') document.getElementById('customApiKey').value = getSavedApiKey();
     }
+    
     function saveSettings() {
       const key = document.getElementById('customApiKey').value.trim();
       localStorage.setItem('ws_gemini_direct_key', key);
@@ -262,6 +227,7 @@
       const level = document.getElementById("jenjang").value;
       const select = document.getElementById("subject");
       select.innerHTML = "";
+      
       const optRandom = document.createElement("option");
       optRandom.value = "Acak"; optRandom.textContent = "🎲 Acak (Bervariasi Tiap Lembar)";
       select.appendChild(optRandom);
@@ -273,34 +239,14 @@
       });
     }
 
-    async function callBackendImage(promptText, aspectRatio = "3:4") {
+    async function callBackendImage(promptText) {
       const apiKey = getSavedApiKey();
-      
-      let isLocalOrigin = window.location.protocol.startsWith('http');
-      if (isLocalOrigin) {
-        try {
-          const resServer = await fetch('/api/generate-image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt: promptText, apiKey: apiKey })
-          });
-          if (resServer.ok) {
-            const dataServer = await resServer.json();
-            if (dataServer.imageUrl) return dataServer.imageUrl;
-          }
-        } catch(e) {}
-      }
+      if (!apiKey) throw new Error("Google Gemini API Key belum diisi! Silakan klik tombol ⚙️ Koneksi AI di kanan atas.");
 
-      if (!apiKey) {
-        throw new Error("Google Gemini API Key belum diisi! Silakan klik tombol ⚙️ Koneksi AI di kanan atas dan masukkan API Key Anda.");
-      }
-
-      const res = await fetch(`[https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=$](https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=$){apiKey}`, {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: promptText }] }]
-        })
+        body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
       });
 
       if (res.ok) {
@@ -311,36 +257,18 @@
           const bytes = part.inlineData?.data || part.inline_data?.data;
           return `data:${mime};base64,${bytes}`;
         }
-        throw new Error("Google Gemini 2.5 Flash Image tidak mengembalikan data gambar.");
+        throw new Error("Gagal mengambil data gambar.");
       } else {
         const errJson = await res.json().catch(() => ({}));
-        const errMsg = errJson?.error?.message || `HTTP ${res.status}`;
-        throw new Error(`Google Gemini API Error [${errMsg}]`);
+        throw new Error(`Google Gemini Error [${errJson?.error?.message || res.status}]`);
       }
     }
 
     async function fetchBackendWorksheet(systemPrompt) {
       const apiKey = getSavedApiKey();
-      if (!apiKey) {
-        throw new Error("Silakan masukkan Google Gemini API Key Anda pada menu ⚙️ Koneksi AI.");
-      }
+      if (!apiKey) throw new Error("Silakan masukkan Google Gemini API Key Anda pada menu ⚙️ Koneksi AI.");
 
-      let isLocalOrigin = window.location.protocol.startsWith('http');
-      if (isLocalOrigin) {
-        try {
-          const resServer = await fetch('/api/generate-worksheet', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ systemPrompt: systemPrompt, apiKey: apiKey })
-          });
-          if (resServer.ok) {
-            const dataServer = await resServer.json();
-            if (dataServer.data) return dataServer.data;
-          }
-        } catch(e) {}
-      }
-
-      const res = await fetch(`[https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$](https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$){apiKey}`, {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -349,15 +277,10 @@
         })
       });
 
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`Google API Error: [HTTP ${res.status}] ${errText}`);
-      }
-
+      if (!res.ok) throw new Error(`Google API Error: [HTTP ${res.status}]`);
       const data = await res.json();
       const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-      const cleanJson = rawText.trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/i, "");
-      return JSON.parse(cleanJson);
+      return JSON.parse(rawText.trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/i, ""));
     }
 
     function buildProductionSystemPrompt(level, subject, difficulty, index) {
@@ -368,61 +291,50 @@ Format Output JSON:
   "title": "Judul Lembar Kerja Edukatif",
   "objective": "Tujuan Pembelajaran Kurikulum Merdeka",
   "instructions": "Petunjuk pengerjaan bagi peserta didik",
-  "readingPassage": null,
   "questions": [
     { "id": 1, "prompt": "Soal nomor 1...", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "answer": "A" }
   ]
 }`;
     }
 
-    function renderPaudInteractiveLayout(activityType, selectedSubject, difficulty, theme, i) {
+    function renderPaudInteractiveLayout(activityType, selectedSubject, difficulty) {
       let contentHTML = "";
-
       if (activityType === "pola") {
         contentHTML = `
-          <div class="tk-instruction-pill"><span>👀</span> PERHATIKAN POLANYA LALU LINGKARI GAMBAR YANG TEPAT!</div>
-          <div class="space-y-3">
+          <div class="tk-instruction-pill">👀 PERHATIKAN POLANYA LALU LINGKARI GAMBAR YANG TEPAT!</div>
+          <div style="display:flex; flex-direction:column; gap:12px;">
             ${[1,2,3,4].map(num => `
-              <div class="pattern-row">
-                <div class="pattern-num">${num}</div>
-                <div class="pattern-sequence">
-                  <span>🚀</span><span>🪐</span><span>🚀</span><span>🪐</span>
-                  <div class="pattern-q-box">?</div>
-                </div>
-                <div class="pattern-options-divider"></div>
-                <div class="pattern-options-group">
-                  <div class="pattern-opt-box">🚀</div>
-                  <div class="pattern-opt-box">🪐</div>
-                </div>
+              <div style="display:flex; align-items:center; justify-style:between; border:2px solid #bae6fd; padding:12px; border-radius:14px; background:#fff;">
+                <div style="background:#ec4899; color:#fff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; margin-right:10px;">${num}</div>
+                <div style="font-size:1.8rem; flex:1; display:flex; gap:10px;"><span>🚀</span><span>🪐</span><span>🚀</span><span>🪐</span><span style="border:2px dashed #0284c7; padding:0 8px; border-radius:8px;">?</span></div>
+                <div style="display:flex; gap:8px;"><span style="border:1px solid #7dd3fc; padding:6px 12px; border-radius:8px; font-size:1.4rem;">🚀</span><span style="border:1px solid #7dd3fc; padding:6px 12px; border-radius:8px; font-size:1.4rem;">🪐</span></div>
               </div>
             `).join('')}
           </div>
         `;
       } else if (activityType === "tarikGaris") {
         contentHTML = `
-          <div class="tk-instruction-pill"><span>✏️</span> TARIK GARIS DARI SISI KIRI KE PASANGANNYA DI SISI KANAN!</div>
-          <div class="match-table">
-            <div class="match-col">
-              <div class="match-card"><span>🚀 Astronot</span><div class="match-dot"></div></div>
-              <div class="match-card"><span>🐰 Kelinci</span><div class="match-dot"></div></div>
-              <div class="match-card"><span>👨‍🍳 Koki</span><div class="match-dot"></div></div>
+          <div class="tk-instruction-pill">✏️ TARIK GARIS DARI SISI KIRI KE PASANGANNYA DI SISI KANAN!</div>
+          <div style="display:flex; justify-content:space-between; gap:20px; padding:10px;">
+            <div style="display:flex; flex-direction:column; gap:14px; flex:1;">
+              <div style="padding:12px; border:2px solid #cbd5e1; border-radius:12px; display:flex; justify-content:space-between; align-items:center; font-weight:bold;">🚀 Astronot <span style="width:14px; height:14px; background:#3b82f6; border-radius:50%; inline-block;"></span></div>
+              <div style="padding:12px; border:2px solid #cbd5e1; border-radius:12px; display:flex; justify-content:space-between; align-items:center; font-weight:bold;">🐰 Kelinci <span style="width:14px; height:14px; background:#3b82f6; border-radius:50%; inline-block;"></span></div>
             </div>
-            <div class="match-col">
-              <div class="match-card"><div class="match-dot"></div><span>🥕 Wortel</span></div>
-              <div class="match-card"><div class="match-dot"></div><span>🍳 Wajan</span></div>
-              <div class="match-card"><div class="match-dot"></div><span>🪐 Roket</span></div>
+            <div style="display:flex; flex-direction:column; gap:14px; flex:1;">
+              <div style="padding:12px; border:2px solid #cbd5e1; border-radius:12px; display:flex; align-items:center; gap:10px; font-weight:bold;"><span style="width:14px; height:14px; background:#3b82f6; border-radius:50%; inline-block;"></span> 🥕 Wortel</div>
+              <div style="padding:12px; border:2px solid #cbd5e1; border-radius:12px; display:flex; align-items:center; gap:10px; font-weight:bold;"><span style="width:14px; height:14px; background:#3b82f6; border-radius:50%; inline-block;"></span> 🪐 Roket</div>
             </div>
           </div>
         `;
       } else {
         contentHTML = `
-          <div class="tk-instruction-pill"><span>🧮</span> HITUNG JUMLAH GAMBAR LALU TULIS ANGANNYA DI KOTAK!</div>
-          <div class="space-y-3">
+          <div class="tk-instruction-pill">🧮 HITUNG JUMLAH GAMBAR LALU TULIS ANGKANYA DI KOTAK!</div>
+          <div style="display:flex; flex-direction:column; gap:12px;">
             ${[3, 5, 2, 4].map((count, idx) => `
-              <div class="pattern-row">
-                <div class="pattern-num">${idx + 1}</div>
-                <div class="flex gap-2 text-3xl flex-1">${Array(count).fill("⭐").join(' ')}</div>
-                <div class="pattern-q-box"></div>
+              <div style="display:flex; align-items:center; justify-content:space-between; border:2px solid #bae6fd; padding:12px; border-radius:14px; background:#fff;">
+                <div style="background:#ec4899; color:#fff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">${idx + 1}</div>
+                <div style="font-size:1.8rem; flex:1; padding-left:14px;">${Array(count).fill("⭐").join(' ')}</div>
+                <div style="width:40px; height:40px; border:2px solid #0284c7; border-radius:8px;"></div>
               </div>
             `).join('')}
           </div>
@@ -430,16 +342,12 @@ Format Output JSON:
       }
 
       return `
-        <div class="tk-banner-wrap">
-          <div class="diff-pill diff-sedang"><span>🎯</span> KESULITAN: ${difficulty.toUpperCase()}</div>
+        <div style="text-align:center; margin-bottom:12px;">
+          <div class="diff-pill">🎯 KESULITAN: ${difficulty.toUpperCase()}</div>
           <div class="tk-banner"><h2>${selectedSubject.toUpperCase()}</h2></div>
         </div>
-        <div class="tk-student-info">
-          <span>Nama: _______________________________</span>
-          <span>Usia/Kelas: _________________</span>
-        </div>
+        <div class="tk-student-info"><span>Nama: _______________________</span><span>Usia/Kelas: _________</span></div>
         ${contentHTML}
-        <div class="tk-footer">✨ WorksheetGenius.id • Kurikulum Merdeka AI ✨</div>
       `;
     }
 
@@ -448,12 +356,11 @@ Format Output JSON:
       const selectedSubject = document.getElementById("subject").value;
       const count = parseInt(document.getElementById("count").value) || 1;
       const difficulty = document.getElementById("difficulty").value;
-      const theme = document.getElementById("theme").value;
       const output = document.getElementById("output");
       const statusBox = document.getElementById("statusContainer");
 
       output.innerHTML = "";
-      statusBox.innerHTML = `<div class="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl text-indigo-900 text-xs font-semibold flex items-center gap-3"><div class="spinner" style="width:20px;height:20px;border-width:2.5px;"></div> <span>Sedang memproses lembar kerja...</span></div>`;
+      statusBox.innerHTML = `<div style="padding:12px; background:#e0e7ff; color:#3730a3; border-radius:12px; font-weight:bold; font-size:0.85rem; display:flex; align-items:center; gap:10px;"><div class="spinner" style="width:20px; height:20px; border-width:2px;"></div> Sedang memproses lembar kerja via Google Gemini...</div>`;
 
       try {
         for (let i = 1; i <= count; i++) {
@@ -461,7 +368,6 @@ Format Output JSON:
           page.className = `ws-page ${level === 'paud' || level === 'tk' ? 'ws-paud-tk' : (level === 'sd' ? 'ws-sd' : 'ws-smp-sma')}`;
 
           if (level === "paud" || level === "tk") {
-            // Strictly check if the activity is explicitly an image activity
             const isImageActivity = selectedSubject.includes("Mewarnai") || selectedSubject.includes("Perbedaan");
 
             if (isImageActivity) {
@@ -471,12 +377,12 @@ Format Output JSON:
                 : "side-by-side spot the difference puzzle game for kids, 3d cgi cartoon style, cute bear chef bakery shop, 4:3 aspect ratio";
 
               page.innerHTML = `
-                <div class="tk-banner-wrap">
-                  <div class="diff-pill diff-sedang"><span>🎯</span> KESULITAN: ${difficulty.toUpperCase()}</div>
+                <div style="text-align:center; margin-bottom:12px;">
+                  <div class="diff-pill">🎯 KESULITAN: ${difficulty.toUpperCase()}</div>
                   <div class="tk-banner"><h2>${selectedSubject.toUpperCase()}</h2></div>
                 </div>
                 <div class="ai-image-frame">
-                  <div id="loader_${i}" class="flex flex-col items-center gap-2 text-indigo-600 font-bold p-6">
+                  <div id="loader_${i}" style="display:flex; flex-direction:column; align-items:center; gap:10px; color:#0284c7; font-weight:bold; padding:20px;">
                     <div class="spinner"></div><span>Melukis visual murni dengan Google Gemini AI...</span>
                   </div>
                   <img id="img_${i}" class="ai-generated-img" style="display:none;" />
@@ -484,19 +390,18 @@ Format Output JSON:
               `;
               output.appendChild(page);
 
-              const imgUrl = await callBackendImage(prompt, isColoring ? "3:4" : "4:3");
+              const imgUrl = await callBackendImage(prompt);
               const img = document.getElementById(`img_${i}`);
               const loader = document.getElementById(`loader_${i}`);
               if (img && loader) {
                 img.src = imgUrl; loader.style.display = "none"; img.style.display = "block";
               }
             } else {
-              // Non-image PAUD/TK activities render visual layouts directly
               let actType = "pola";
               if (selectedSubject.includes("Tarik Garis")) actType = "tarikGaris";
               else if (selectedSubject.includes("Menghitung")) actType = "counting";
 
-              page.innerHTML = renderPaudInteractiveLayout(actType, selectedSubject, difficulty, theme, i);
+              page.innerHTML = renderPaudInteractiveLayout(actType, selectedSubject, difficulty);
               output.appendChild(page);
             }
           } else {
@@ -504,14 +409,12 @@ Format Output JSON:
             const aiData = await fetchBackendWorksheet(systemPrompt);
 
             page.innerHTML = `
-              <div class="ws-header">
-                <div>
-                  <div class="diff-pill diff-sedang"><span>🎯</span> KESULITAN: ${difficulty.toUpperCase()}</div>
-                  <div class="ws-title">${aiData.title || selectedSubject}</div>
-                </div>
+              <div style="border-bottom:2px solid #3b82f6; padding-bottom:12px; margin-bottom:16px;">
+                <div class="diff-pill">🎯 KESULITAN: ${difficulty.toUpperCase()}</div>
+                <h2 style="font-size:1.5rem; color:#1d4ed8; font-weight:800;">${aiData.title || selectedSubject}</h2>
               </div>
-              <div class="ws-instructions">${aiData.instructions || 'Kerjakan dengan teliti.'}</div>
-              <div class="questions-list">
+              <div style="background:#f0fdf4; border-left:4px solid #22c55e; padding:10px; margin-bottom:20px; font-weight:bold; font-size:0.85rem; color:#15803d;">${aiData.instructions || 'Kerjakan dengan teliti.'}</div>
+              <div>
                 ${(aiData.questions || []).map(q => `
                   <div class="q-item">
                     <strong>${q.id}.${q.prompt}</strong>
@@ -523,9 +426,9 @@ Format Output JSON:
             output.appendChild(page);
           }
         }
-        statusBox.innerHTML = `<div class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 text-xs font-semibold">✅ Berhasil membuat lembar kerja! Klik '📥 Download PDF (A4)' untuk mengunduh.</div>`;
+        statusBox.innerHTML = `<div style="padding:12px; background:#dcfce7; color:#15803d; border-radius:12px; font-weight:bold; font-size:0.85rem;">✅ Berhasil membuat lembar kerja! Klik '📥 Download PDF (A4)' untuk mengunduh.</div>`;
       } catch (err) {
-        statusBox.innerHTML = `<div class="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-900 text-xs font-medium">${err.message}</div>`;
+        statusBox.innerHTML = `<div style="padding:12px; background:#fee2e2; color:#b91c1c; border-radius:12px; font-weight:bold; font-size:0.85rem;">${err.message}</div>`;
       }
     }
 
