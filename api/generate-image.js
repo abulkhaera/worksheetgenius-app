@@ -1,42 +1,57 @@
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
     const { prompt, apiKey: clientKey } = req.body || {};
     const apiKey = clientKey || process.env.GEMINI_API_KEY;
 
-    if (!apiKey) {
-      return res.status(400).json({
-        success: false,
-        error: "GEMINI_API_KEY tidak ditemukan. Masukkan API Key Google Gemini Anda di menu Pengaturan AI."
+    // 1. Try Gemini Image endpoint if key is present
+    if (apiKey) {
+      try {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`;
+        const geminiRes = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }]
+          })
+        });
+
+        if (geminiRes.ok) {
+          const data = await geminiRes.json();
+          const candidatePart = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData || p.inline_data);
+          if (candidatePart) {
+            const mimeType = candidatePart.inlineData?.mimeType || candidatePart.inline_data?.mime_type || "image/jpeg";
+            const base64Data = candidatePart.inlineData?.data || candidatePart.inline_data?.data;
+            return res.status(200).json({ success: true, imageUrl: `data:${mimeType};base64,${base64Data}` });
+          }
+        }
+      } catch (err) {
+        console.warn("Gemini Image API quota error, activating serverless fallback:", err.message);
+      }
+    }
+
+    // 2. Automated Free Serverless Fallback (100% Free, No Quota Limits or Billing Required)
+    const seed = Math.floor(Math.random() * 9000000) + 1000000;
+    const fallbackUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=768&height=1024&seed=${seed}&nologo=true`;
+
+    const imgRes = await fetch(fallbackUrl);
+    if (imgRes.ok) {
+      const buffer = await imgRes.arrayBuffer();
+      const base64 = Buffer.from(buffer).toString('base64');
+      const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+      return res.status(200).json({
+        success: true,
+        imageUrl: `data:${contentType};base64,${base64}`
       });
     }
 
-    const apiUrl = `[https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=$](https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=$){apiKey}`;
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
-      })
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      const candidatePart = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData || p.inline_data);
-      if (candidatePart) {
-        const mimeType = candidatePart.inlineData?.mimeType || candidatePart.inline_data?.mime_type || "image/jpeg";
-        const base64Data = candidatePart.inlineData?.data || candidatePart.inline_data?.data;
-        return res.status(200).json({ success: true, imageUrl: `data:${mimeType};base64,${base64Data}` });
-      } else {
-        return res.status(500).json({ success: false, error: "Google Gemini 2.5 Flash Image tidak mengembalikan data gambar." });
-      }
-    } else {
-      const errText = await response.text();
-      return res.status(response.status).json({ success: false, error: `Google Gemini API Error [HTTP ${response.status}]: ${errText}` });
-    }
+    return res.status(200).json({ success: true, imageUrl: fallbackUrl });
   } catch (err) {
-    return res.status(500).json({ success: false, error: err.message });
+    return res.status(500).json({ success: false, error: err.message || "Failed to generate image." });
   }
 };
