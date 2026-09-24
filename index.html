@@ -3,19 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WorksheetGenius ID - Pure Google Gemini Edition</title>
+  <title>WorksheetGenius.id - Generator Lembar Kerja Edukasi</title>
   
   <link rel="icon" type="image/png" href="Logo.png" id="favIcon">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)">
+  <link rel="preconnect" href="[https://fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
+  <link href="[https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap](https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap)" rel="stylesheet">
   
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+  <script src="[https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js](https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js)"></script>
 
   <style>
-    :root { --font-sans: 'Plus Jakarta Sans', sans-serif; }
-    body { font-family: var(--font-sans); background: linear-gradient(135deg, #f0f4ff 0%, #f8fafc 50%, #f1f5f9 100%); min-height: 100vh; color: #0f172a; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient(135deg, #f0f4ff 0%, #f8fafc 50%, #f1f5f9 100%); min-height: 100vh; color: #0f172a; }
     .glass-panel { background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgba(226, 232, 240, 0.85); }
     .glass-header { background: linear-gradient(135deg, #3730a3 0%, #4338ca 40%, #2563eb 100%); box-shadow: 0 10px 25px -5px rgba(55, 48, 163, 0.25); }
     
@@ -34,9 +33,24 @@
     .ws-paud-tk .tk-banner-wrap { display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 12px; }
     .ws-paud-tk .tk-banner { background: linear-gradient(180deg, #fef08a 0%, #facc15 100%); border: 3.5px solid #d97706; border-radius: 40px; padding: 8px 36px; text-align: center; box-shadow: 0 4px 0 #b45309; display: inline-flex; align-items: center; gap: 8px; }
     .ws-paud-tk .tk-banner h2 { font-size: 1.65rem; font-weight: 700; color: #1d4ed8; letter-spacing: 0.5px; text-transform: uppercase; text-shadow: 1px 1px 0 #fff; }
+    .ws-paud-tk .tk-student-info { background: #eff6ff; border: 2px solid #60a5fa; border-radius: 24px; padding: 8px 24px; display: flex; justify-content: space-between; margin-bottom: 14px; font-size: 1.05rem; color: #1e40af; font-weight: 600; }
+    .ws-paud-tk .tk-instruction-pill { background: #ffe4e6; border: 2px solid #fda4af; border-radius: 22px; padding: 8px 18px; text-align: center; font-size: 1.05rem; font-weight: 700; color: #be123c; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
     .ai-image-frame { border: 4px solid #38bdf8; border-radius: 22px; background: #ffffff; padding: 0; margin-bottom: 14px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; box-shadow: 0 4px 14px rgba(56, 189, 248, 0.15); overflow: hidden; width: 100%; }
     .ai-generated-img { width: 100%; height: auto; max-height: 520px; object-fit: contain; border-radius: 18px; background: #ffffff; display: block; }
+
+    .pattern-row { display: flex; align-items: center; justify-content: space-between; background: #ffffff; border: 2.5px solid #bae6fd; border-radius: 16px; padding: 12px 18px; margin-bottom: 14px; }
+    .pattern-num { background: #ec4899; color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; margin-right: 12px; flex-shrink: 0; }
+    .pattern-sequence { display: flex; align-items: center; gap: 12px; font-size: 2.4rem; flex: 1; }
+    .pattern-q-box { width: 52px; height: 52px; border: 3px dashed #0284c7; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: #0284c7; background: #f0f9ff; font-weight: bold; }
+    .pattern-options-divider { width: 2px; height: 44px; border-left: 2px dashed #cbd5e1; margin: 0 16px; }
+    .pattern-options-group { display: flex; gap: 10px; }
+    .pattern-opt-box { width: 52px; height: 52px; border: 2px solid #7dd3fc; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2.1rem; background: #ffffff; }
+
+    .match-table { display: flex; justify-content: space-between; gap: 24px; padding: 12px 16px; }
+    .match-col { display: flex; flex-direction: column; gap: 16px; flex: 1; }
+    .match-card { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; border-radius: 16px; border: 2.5px solid #cbd5e1; background: #ffffff; font-size: 1.35rem; font-weight: 700; color: #334155; }
+    .match-dot { width: 18px; height: 18px; background-color: #3b82f6; border: 3px solid #bfdbfe; border-radius: 50%; flex-shrink: 0; }
 
     .ws-sd { font-family: 'Nunito', sans-serif; border: 5px solid #3b82f6; border-radius: 16px; background-color: #ffffff; color: #1e293b; padding: 20px; }
     .ws-sd .ws-header { border-bottom: 3.5px solid #3b82f6; padding-bottom: 14px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: flex-start; }
@@ -78,18 +92,18 @@
                 WorksheetGenius<span class="text-amber-300">.id</span>
               </span>
               <span class="text-[11px] font-semibold text-white/80 tracking-wide uppercase mt-1">
-                Pure Google Gemini 2.5 Flash Edition
+                Generator Lembar Kerja Kurikulum Merdeka
               </span>
             </div>
           </div>
 
           <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase mb-2">
-            <span>🚀 GOOGLE GEMINI 2.5 FLASH DIRECT</span>
+            <span>🚀 GOOGLE GEMINI 2.5 FLASH</span>
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>
           </div>
 
           <p class="text-white/85 text-xs sm:text-sm mt-1 max-w-xl text-left">
-            Buat Lembar Kerja Peserta Didik (LKPD) otomatis berbasis Taksonomi Bloom & Kurikulum Merdeka menggunakan murni Google Gemini 2.5 Flash AI.
+            Buat Lembar Kerja Peserta Didik (LKPD) otomatis berbasis Taksonomi Bloom & Kurikulum Merdeka untuk PAUD hingga SMA.
           </p>
         </div>
         
@@ -115,7 +129,7 @@
       <div class="bg-indigo-50/50 p-4 rounded-xl border-2 border-indigo-200">
         <label class="text-xs font-bold text-slate-800 block mb-1">Google Gemini API Key (Versi Gratis Google AI Studio)</label>
         <input type="password" id="customApiKey" placeholder="AIzaSy..." class="w-full text-xs font-mono p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-        <span class="text-[11px] text-slate-500 mt-1 block">Tersimpan aman di peramban Anda. Dapatkan API Key gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-600 underline font-semibold">Google AI Studio</a>.</span>
+        <span class="text-[11px] text-slate-500 mt-1 block">Tersimpan aman di peramban Anda. Dapatkan API Key gratis di <a href="[https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)" target="_blank" class="text-indigo-600 underline font-semibold">Google AI Studio</a>.</span>
       </div>
 
       <div class="flex items-center gap-3 mt-4 pt-3 border-t border-slate-200">
@@ -123,6 +137,7 @@
       </div>
     </div>
 
+    <!-- Parameter Controls Card -->
     <div class="glass-panel rounded-2xl p-6 sm:p-7 shadow-lg border border-slate-200/80 mb-8 no-print">
       <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-200/70">
         <div class="flex items-center gap-2">
@@ -261,10 +276,6 @@
     async function callBackendImage(promptText, aspectRatio = "3:4") {
       const apiKey = getSavedApiKey();
       
-      if (!apiKey) {
-        throw new Error("Google Gemini API Key belum diisi! Silakan klik tombol ⚙️ Koneksi AI di kanan atas dan masukkan API Key Anda.");
-      }
-
       let isLocalOrigin = window.location.protocol.startsWith('http');
       if (isLocalOrigin) {
         try {
@@ -280,7 +291,11 @@
         } catch(e) {}
       }
 
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`, {
+      if (!apiKey) {
+        throw new Error("Google Gemini API Key belum diisi! Silakan klik tombol ⚙️ Koneksi AI di kanan atas dan masukkan API Key Anda.");
+      }
+
+      const res = await fetch(`[https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=$](https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=$){apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -325,7 +340,7 @@
         } catch(e) {}
       }
 
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+      const res = await fetch(`[https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$](https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$){apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -360,16 +375,85 @@ Format Output JSON:
 }`;
     }
 
+    function renderPaudInteractiveLayout(activityType, selectedSubject, difficulty, theme, i) {
+      let contentHTML = "";
+
+      if (activityType === "pola") {
+        contentHTML = `
+          <div class="tk-instruction-pill"><span>👀</span> PERHATIKAN POLANYA LALU LINGKARI GAMBAR YANG TEPAT!</div>
+          <div class="space-y-3">
+            ${[1,2,3,4].map(num => `
+              <div class="pattern-row">
+                <div class="pattern-num">${num}</div>
+                <div class="pattern-sequence">
+                  <span>🚀</span><span>🪐</span><span>🚀</span><span>🪐</span>
+                  <div class="pattern-q-box">?</div>
+                </div>
+                <div class="pattern-options-divider"></div>
+                <div class="pattern-options-group">
+                  <div class="pattern-opt-box">🚀</div>
+                  <div class="pattern-opt-box">🪐</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } else if (activityType === "tarikGaris") {
+        contentHTML = `
+          <div class="tk-instruction-pill"><span>✏️</span> TARIK GARIS DARI SISI KIRI KE PASANGANNYA DI SISI KANAN!</div>
+          <div class="match-table">
+            <div class="match-col">
+              <div class="match-card"><span>🚀 Astronot</span><div class="match-dot"></div></div>
+              <div class="match-card"><span>🐰 Kelinci</span><div class="match-dot"></div></div>
+              <div class="match-card"><span>👨‍🍳 Koki</span><div class="match-dot"></div></div>
+            </div>
+            <div class="match-col">
+              <div class="match-card"><div class="match-dot"></div><span>🥕 Wortel</span></div>
+              <div class="match-card"><div class="match-dot"></div><span>🍳 Wajan</span></div>
+              <div class="match-card"><div class="match-dot"></div><span>🪐 Roket</span></div>
+            </div>
+          </div>
+        `;
+      } else {
+        contentHTML = `
+          <div class="tk-instruction-pill"><span>🧮</span> HITUNG JUMLAH GAMBAR LALU TULIS ANGANNYA DI KOTAK!</div>
+          <div class="space-y-3">
+            ${[3, 5, 2, 4].map((count, idx) => `
+              <div class="pattern-row">
+                <div class="pattern-num">${idx + 1}</div>
+                <div class="flex gap-2 text-3xl flex-1">${Array(count).fill("⭐").join(' ')}</div>
+                <div class="pattern-q-box"></div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      return `
+        <div class="tk-banner-wrap">
+          <div class="diff-pill diff-sedang"><span>🎯</span> KESULITAN: ${difficulty.toUpperCase()}</div>
+          <div class="tk-banner"><h2>${selectedSubject.toUpperCase()}</h2></div>
+        </div>
+        <div class="tk-student-info">
+          <span>Nama: _______________________________</span>
+          <span>Usia/Kelas: _________________</span>
+        </div>
+        ${contentHTML}
+        <div class="tk-footer">✨ WorksheetGenius.id • Kurikulum Merdeka AI ✨</div>
+      `;
+    }
+
     async function generateWorksheetsAI() {
       const level = document.getElementById("jenjang").value;
-      const subject = document.getElementById("subject").value;
+      const selectedSubject = document.getElementById("subject").value;
       const count = parseInt(document.getElementById("count").value) || 1;
       const difficulty = document.getElementById("difficulty").value;
+      const theme = document.getElementById("theme").value;
       const output = document.getElementById("output");
       const statusBox = document.getElementById("statusContainer");
 
       output.innerHTML = "";
-      statusBox.innerHTML = `<div class="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl text-indigo-900 text-xs font-semibold flex items-center gap-3"><div class="spinner" style="width:20px;height:20px;border-width:2.5px;"></div> <span>Sedang memproses lembar kerja via Google Gemini 2.5 Flash...</span></div>`;
+      statusBox.innerHTML = `<div class="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl text-indigo-900 text-xs font-semibold flex items-center gap-3"><div class="spinner" style="width:20px;height:20px;border-width:2.5px;"></div> <span>Sedang memproses lembar kerja...</span></div>`;
 
       try {
         for (let i = 1; i <= count; i++) {
@@ -377,40 +461,53 @@ Format Output JSON:
           page.className = `ws-page ${level === 'paud' || level === 'tk' ? 'ws-paud-tk' : (level === 'sd' ? 'ws-sd' : 'ws-smp-sma')}`;
 
           if (level === "paud" || level === "tk") {
-            const isColoring = subject.includes("Mewarnai") || subject === "Acak";
-            const prompt = isColoring 
-              ? "clean vector coloring book page for toddlers, bold thick black outline, clear enclosed shapes, pure white background #ffffff, cute astronaut floating in space with planets, no shading, no color fill"
-              : "side-by-side spot the difference puzzle game for kids, 3d cgi cartoon style, cute bear chef bakery shop, 4:3 aspect ratio";
+            // Strictly check if the activity is explicitly an image activity
+            const isImageActivity = selectedSubject.includes("Mewarnai") || selectedSubject.includes("Perbedaan");
 
-            page.innerHTML = `
-              <div class="tk-banner-wrap">
-                <div class="diff-pill diff-sedang"><span>🎯</span> KESULITAN: ${difficulty.toUpperCase()}</div>
-                <div class="tk-banner"><h2>${subject.toUpperCase()}</h2></div>
-              </div>
-              <div class="ai-image-frame">
-                <div id="loader_${i}" class="flex flex-col items-center gap-2 text-indigo-600 font-bold p-6">
-                  <div class="spinner"></div><span>Melukis visual murni dengan Google Gemini 2.5 Flash AI...</span>
+            if (isImageActivity) {
+              const isColoring = selectedSubject.includes("Mewarnai");
+              const prompt = isColoring 
+                ? "clean vector coloring book page for toddlers, bold thick black outline, clear enclosed shapes, pure white background #ffffff, cute astronaut floating in space with planets, no shading, no color fill"
+                : "side-by-side spot the difference puzzle game for kids, 3d cgi cartoon style, cute bear chef bakery shop, 4:3 aspect ratio";
+
+              page.innerHTML = `
+                <div class="tk-banner-wrap">
+                  <div class="diff-pill diff-sedang"><span>🎯</span> KESULITAN: ${difficulty.toUpperCase()}</div>
+                  <div class="tk-banner"><h2>${selectedSubject.toUpperCase()}</h2></div>
                 </div>
-                <img id="img_${i}" class="ai-generated-img" style="display:none;" />
-              </div>
-            `;
-            output.appendChild(page);
+                <div class="ai-image-frame">
+                  <div id="loader_${i}" class="flex flex-col items-center gap-2 text-indigo-600 font-bold p-6">
+                    <div class="spinner"></div><span>Melukis visual murni dengan Google Gemini AI...</span>
+                  </div>
+                  <img id="img_${i}" class="ai-generated-img" style="display:none;" />
+                </div>
+              `;
+              output.appendChild(page);
 
-            const imgUrl = await callBackendImage(prompt, isColoring ? "3:4" : "4:3");
-            const img = document.getElementById(`img_${i}`);
-            const loader = document.getElementById(`loader_${i}`);
-            if (img && loader) {
-              img.src = imgUrl; loader.style.display = "none"; img.style.display = "block";
+              const imgUrl = await callBackendImage(prompt, isColoring ? "3:4" : "4:3");
+              const img = document.getElementById(`img_${i}`);
+              const loader = document.getElementById(`loader_${i}`);
+              if (img && loader) {
+                img.src = imgUrl; loader.style.display = "none"; img.style.display = "block";
+              }
+            } else {
+              // Non-image PAUD/TK activities render visual layouts directly
+              let actType = "pola";
+              if (selectedSubject.includes("Tarik Garis")) actType = "tarikGaris";
+              else if (selectedSubject.includes("Menghitung")) actType = "counting";
+
+              page.innerHTML = renderPaudInteractiveLayout(actType, selectedSubject, difficulty, theme, i);
+              output.appendChild(page);
             }
           } else {
-            const systemPrompt = buildProductionSystemPrompt(level, subject, difficulty, i);
+            const systemPrompt = buildProductionSystemPrompt(level, selectedSubject, difficulty, i);
             const aiData = await fetchBackendWorksheet(systemPrompt);
 
             page.innerHTML = `
               <div class="ws-header">
                 <div>
                   <div class="diff-pill diff-sedang"><span>🎯</span> KESULITAN: ${difficulty.toUpperCase()}</div>
-                  <div class="ws-title">${aiData.title || subject}</div>
+                  <div class="ws-title">${aiData.title || selectedSubject}</div>
                 </div>
               </div>
               <div class="ws-instructions">${aiData.instructions || 'Kerjakan dengan teliti.'}</div>
